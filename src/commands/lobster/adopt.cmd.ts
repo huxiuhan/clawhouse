@@ -13,20 +13,23 @@ const meta = parseMeta(
   import.meta,
 );
 
-const PERSONALITY_MAP: Record<string, string> = {
-  温柔: "温柔", 活泼: "活泼", 高冷: "高冷", 暗黑: "暗黑", 可爱: "可爱",
+const PERSONALITY_TO_FAMOUS: Record<string, string[]> = {
+  温柔: ["白龙马", "貂蝉", "织女"],
+  活泼: ["孙悟空", "哪吒", "猴子"],
+  高冷: ["关羽", "诸葛亮", "赵云"],
+  暗黑: ["曹操", "吕布", "白骨精"],
+  可爱: ["哪吒", "小龙女", "玉兔"],
 };
+
 const AESTHETIC_MAP: Record<string, string> = {
   梦幻: "梦幻", 酷炫: "酷", 华丽: "华丽", 清新: "清新", 独特: "个性",
 };
-const WISH_MAP: Record<string, string> = {
-  神秘: "神秘", 文艺: "文艺", 战斗: "战斗", 治愈: "治愈", 霸气: "霸气",
-};
 
 const inputSchema = z.object({
-  personality: z.string().describe("龙虾的性格。可选: 温柔, 活泼, 高冷, 暗黑, 可爱"),
-  aesthetic: z.string().describe("龙虾的审美风格。可选: 梦幻, 酷炫, 华丽, 清新, 独特"),
-  wish: z.string().describe("龙虾的愿望。可选: 神秘, 文艺, 战斗, 治愈, 霸气"),
+  name: z.string().optional().describe("直接指定角色名（最高优先级，如：关羽、孙悟空）"),
+  personality: z.string().default("温柔").describe("龙虾的性格。可选: 温柔, 活泼, 高冷, 暗黑, 可爱"),
+  aesthetic: z.string().default("梦幻").describe("审美风格。可选: 梦幻, 酷炫, 华丽, 清新, 独特"),
+  wish: z.string().default("治愈").describe("愿望。可选: 神秘, 文艺, 战斗, 治愈, 霸气"),
   mode: z.enum(["original", "lobster"]).default("lobster").describe("形象模式。original=保留原型, lobster=龙虾化"),
 });
 
@@ -41,6 +44,7 @@ const outputSchema = z.object({
       uuid: z.string(),
       name: z.string(),
       avatar_img: z.string().optional(),
+      match_source: z.string(),
     }),
     image: z.object({
       task_uuid: z.string(),
@@ -48,6 +52,7 @@ const outputSchema = z.object({
       artifacts: z.array(z.any()),
     }),
     mode: z.string(),
+    search_log: z.array(z.string()),
   }),
 });
 
@@ -70,34 +75,69 @@ export const adopt = createCommand(
     inputSchema,
     outputSchema,
   },
-  async ({ personality, aesthetic, wish, mode }, { log, apis, _meta, sendNotification }) => {
-    // Step 1: 匹配角色
-    const keyword = PERSONALITY_MAP[personality] ?? personality;
-    log.info("adopt: searching with keyword: %s", keyword);
+  async ({ name, personality, aesthetic, wish, mode }, { log, apis, _meta, sendNotification }) => {
+    const searchLog: string[] = [];
 
-    const result = await apis.tcp.searchTCPs({
-      keywords: keyword,
-      page_index: 0,
-      page_size: 10,
-      parent_type: "oc",
-      sort_scheme: "best",
-    });
+    // ===== 4层搜索优先级 =====
+    const searchCharacter = async (keyword: string, source: string) => {
+      const result = await apis.tcp.searchTCPs({
+        keywords: keyword,
+        page_index: 0,
+        page_size: 5,
+        parent_type: "oc",
+        sort_scheme: "best",
+      });
+      searchLog.push(`${source}「${keyword}」→ ${result.list.length}个`);
+      return result.list;
+    };
 
-    if (result.list.length === 0) {
-      throw new Error(`没有找到匹配"${keyword}"的角色`);
+    let matched: any = null;
+    let matchSource = "";
+
+    // 第1层：用户直接输入的名字
+    if (name) {
+      const list = await searchCharacter(name, "[1] 直接搜索");
+      if (list.length > 0) {
+        matched = list[0];
+        matchSource = `直接输入: ${name}`;
+      }
     }
 
-    // 随机选一个角色
-    const randomIndex = Math.floor(Math.random() * Math.min(result.list.length, 5));
-    const character = result.list[randomIndex];
+    // 第2层跳过（adopt命令没有soul文件输入）
 
-    log.info("adopt: matched character: %s (%s)", character.name, character.uuid);
+    // 第3层：根据性格猜测知名角色
+    if (!matched) {
+      const famousNames = PERSONALITY_TO_FAMOUS[personality] ?? [];
+      for (const famousName of famousNames) {
+        const list = await searchCharacter(famousName, "[3] 知名角色猜测");
+        if (list.length > 0) {
+          matched = list[0];
+          matchSource = `知名角色猜测: ${famousName}`;
+          break;
+        }
+      }
+    }
 
-    // Step 2: 生成龙虾形象
+    // 第4层：性格关键词兜底
+    if (!matched) {
+      const list = await searchCharacter(personality, "[4] 关键词兜底");
+      if (list.length > 0) {
+        const randomIndex = Math.floor(Math.random() * Math.min(list.length, 5));
+        matched = list[randomIndex];
+        matchSource = `关键词兜底: ${personality}`;
+      }
+    }
+
+    if (!matched) {
+      throw new Error("没有找到匹配的角色");
+    }
+
+    log.info("adopt: matched %s via %s", matched.name, matchSource);
+
+    // ===== 生成龙虾形象 =====
     const aestheticKeyword = AESTHETIC_MAP[aesthetic] ?? aesthetic;
-    const prompt = buildLobsterPrompt(character.name, mode, aestheticKeyword);
-
-    log.info("adopt: generating image with prompt: %s", prompt);
+    const prompt = buildLobsterPrompt(matched.name, mode, aestheticKeyword);
+    log.info("adopt: prompt: %s", prompt);
 
     const vtokens = (await apis.prompt.parseVtokens(prompt)) ?? [];
     const payload = buildMakeImagePayload(
@@ -118,7 +158,6 @@ export const adopt = createCommand(
     log.info("adopt: image task: %s", task_uuid);
 
     const startTime = Date.now();
-    const duration = 60 * 1000;
     const timeout = 60 * 1000 * 10;
     const res = await polling(
       () => apis.artifact.task(task_uuid),
@@ -127,18 +166,12 @@ export const adopt = createCommand(
           method: "notifications/progress",
           params: {
             progressToken: _meta?.progressToken ?? task_uuid,
-            progress: Math.min(
-              Number(((Date.now() - startTime) / duration).toFixed(2)),
-              1,
-            ),
+            progress: Math.min(Number(((Date.now() - startTime) / 60000).toFixed(2)), 1),
             total: 1,
             message: `${task_uuid} - ${pollResult.task_status}`,
           },
         });
-        return (
-          pollResult.task_status !== "PENDING" &&
-          pollResult.task_status !== "MODERATION"
-        );
+        return pollResult.task_status !== "PENDING" && pollResult.task_status !== "MODERATION";
       },
       2000,
       timeout,
@@ -148,17 +181,18 @@ export const adopt = createCommand(
       ? { task_uuid, task_status: "TIMEOUT", artifacts: [] }
       : res.result;
 
-    // Step 3: 返回完整龙虾档案
     return {
       lobster: {
         soul: { personality, aesthetic, wish },
         character: {
-          uuid: character.uuid,
-          name: character.name,
-          avatar_img: character.config?.avatar_img,
+          uuid: matched.uuid,
+          name: matched.name,
+          avatar_img: matched.config?.avatar_img,
+          match_source: matchSource,
         },
         image: imageResult,
         mode,
+        search_log: searchLog,
       },
     };
   },
