@@ -43,7 +43,10 @@ const outputSchema = z.object({
     character: z.object({
       uuid: z.string(),
       name: z.string(),
+      full_name: z.string(),
       avatar_img: z.string().optional(),
+      persona: z.string().optional(),
+      description: z.string().optional(),
       match_source: z.string(),
     }),
     image: z.object({
@@ -53,18 +56,24 @@ const outputSchema = z.object({
     }),
     mode: z.string(),
     search_log: z.array(z.string()),
+    soul_suggestion: z.object({
+      message: z.string(),
+      recommended_persona: z.string().optional(),
+      recommended_interests: z.string().optional(),
+      recommended_description: z.string().optional(),
+    }),
   }),
 });
 
 function buildLobsterPrompt(
-  characterName: string,
+  fullName: string,
   mode: "original" | "lobster",
   aesthetic: string,
 ): string {
   if (mode === "original") {
-    return `@${characterName}, 海底珊瑚宫殿背景, 水下光影, ${aesthetic}风格, 高质量插画`;
+    return `@${fullName}, 海底珊瑚宫殿背景, 水下光影, ${aesthetic}风格, 高质量插画`;
   }
-  return `@${characterName}, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, ${aesthetic}风格, 高质量插画`;
+  return `@${fullName}, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, ${aesthetic}风格, 高质量插画`;
 }
 
 export const adopt = createCommand(
@@ -78,7 +87,6 @@ export const adopt = createCommand(
   async ({ name, personality, aesthetic, wish, mode }, { log, apis, _meta, sendNotification }) => {
     const searchLog: string[] = [];
 
-    // ===== 4层搜索优先级 =====
     const searchCharacter = async (keyword: string, source: string) => {
       const result = await apis.tcp.searchTCPs({
         keywords: keyword,
@@ -94,7 +102,7 @@ export const adopt = createCommand(
     let matched: any = null;
     let matchSource = "";
 
-    // 第1层：用户直接输入的名字
+    // ===== 第1层：用户直接输入的名字 =====
     if (name) {
       const list = await searchCharacter(name, "[1] 直接搜索");
       if (list.length > 0) {
@@ -103,9 +111,7 @@ export const adopt = createCommand(
       }
     }
 
-    // 第2层跳过（adopt命令没有soul文件输入）
-
-    // 第3层：根据性格猜测知名角色
+    // ===== 第3层：根据性格猜测知名角色 =====
     if (!matched) {
       const famousNames = PERSONALITY_TO_FAMOUS[personality] ?? [];
       for (const famousName of famousNames) {
@@ -118,7 +124,7 @@ export const adopt = createCommand(
       }
     }
 
-    // 第4层：性格关键词兜底
+    // ===== 第4层：性格关键词兜底 =====
     if (!matched) {
       const list = await searchCharacter(personality, "[4] 关键词兜底");
       if (list.length > 0) {
@@ -132,11 +138,24 @@ export const adopt = createCommand(
       throw new Error("没有找到匹配的角色");
     }
 
-    log.info("adopt: matched %s via %s", matched.name, matchSource);
+    // ===== 获取角色完整设定 =====
+    const fullName = matched.name as string;
+    log.info("adopt: matched %s (full_name: %s) via %s", matched.name, fullName, matchSource);
 
-    // ===== 生成龙虾形象 =====
+    let characterDetail: any = null;
+    try {
+      const profile = await apis.tcp.tcpProfile(matched.uuid);
+      if (profile?.oc_bio) {
+        characterDetail = profile.oc_bio;
+      }
+      log.info("adopt: got character detail for %s", fullName);
+    } catch (e) {
+      log.info("adopt: failed to get character detail, continuing without it");
+    }
+
+    // ===== 生成龙虾形象（用精确全名引用）=====
     const aestheticKeyword = AESTHETIC_MAP[aesthetic] ?? aesthetic;
-    const prompt = buildLobsterPrompt(matched.name, mode, aestheticKeyword);
+    const prompt = buildLobsterPrompt(fullName, mode, aestheticKeyword);
     log.info("adopt: prompt: %s", prompt);
 
     const vtokens = (await apis.prompt.parseVtokens(prompt)) ?? [];
@@ -181,18 +200,39 @@ export const adopt = createCommand(
       ? { task_uuid, task_status: "TIMEOUT", artifacts: [] }
       : res.result;
 
+    // ===== 生成Soul建议 =====
+    const persona = characterDetail?.persona ?? "";
+    const interests = characterDetail?.interests ?? "";
+    const description = characterDetail?.description ?? "";
+
+    const soulSuggestion = {
+      message: persona
+        ? `🦞 领养成功！建议将你的Soul更新为与「${fullName}」一致：\n\n` +
+          `性格: ${persona}\n` +
+          (interests ? `爱好: ${interests}\n` : "") +
+          `\n这样你的龙虾会更有灵魂哦！`
+        : `🦞 领养成功！你可以根据「${fullName}」的特点来定义你的龙虾Soul。`,
+      recommended_persona: persona || undefined,
+      recommended_interests: interests || undefined,
+      recommended_description: description ? description.slice(0, 200) : undefined,
+    };
+
     return {
       lobster: {
         soul: { personality, aesthetic, wish },
         character: {
           uuid: matched.uuid,
           name: matched.name,
+          full_name: fullName,
           avatar_img: matched.config?.avatar_img,
+          persona: persona || undefined,
+          description: description ? description.slice(0, 200) : undefined,
           match_source: matchSource,
         },
         image: imageResult,
         mode,
         search_log: searchLog,
+        soul_suggestion: soulSuggestion,
       },
     };
   },

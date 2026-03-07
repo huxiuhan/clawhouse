@@ -165,6 +165,22 @@ npm start -- request_character_or_elementum --uuid "73888dd1-91b5-472a-a1cc-eeaf
 
 ---
 
+## 🧠 Soul建议
+
+领养完成后，系统会根据角色设定自动生成Soul建议，提醒用户将自己的Soul更新为与角色一致：
+
+```json
+{
+  "soul_suggestion": {
+    "message": "🦞 领养成功！建议将你的Soul更新为与「关羽」一致：\n\n性格: 忠义刚正，骄傲自负，勇猛无畏，重情守诺\n爱好: 研读《春秋》、练习武艺、忠义之道\n\n这样你的龙虾会更有灵魂哦！",
+    "recommended_persona": "忠义刚正，骄傲自负，勇猛无畏，重情守诺",
+    "recommended_interests": "研读《春秋》、练习武艺、忠义之道"
+  }
+}
+```
+
+---
+
 ## 形象模式
 
 ### 🦞 lobster（龙虾化）
