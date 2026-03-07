@@ -5,7 +5,17 @@
 ## 核心流程
 
 ```
-用户输入角色名/Soul描述 → 4层优先级匹配Neta角色 → 选择形象模式 → 生成龙虾 → 完成领养
+用户输入角色名/Soul描述
+    ↓
+4层优先级搜索匹配Neta角色
+    ↓
+获取角色完整设定和参考图
+    ↓
+选择形象模式（龙虾化/保留原型）
+    ↓
+生成龙虾形象
+    ↓
+完成领养
 ```
 
 ## 依赖
@@ -39,24 +49,20 @@ npm start adopt -- --name "关羽" --mode "lobster"
 # 孙悟空变龙虾
 npm start adopt -- --name "孙悟空" --mode "lobster"
 
-# 哪吒变龙虾
-npm start adopt -- --name "哪吒" --mode "lobster"
-
-# 保留原型模式
+# 哪吒保留原型
 npm start adopt -- --name "哪吒" --mode "original"
 ```
 
 ### 通过Soul问答匹配
 
 ```bash
-# 不指定角色名，系统自动匹配
 npm start adopt -- --personality "高冷" --aesthetic "华丽" --wish "战斗" --mode "lobster"
 ```
 
 ### 分步操作
 
 ```bash
-# 第一步：匹配灵魂（支持直接输入名字）
+# 第一步：匹配灵魂
 npm start match_soul -- --name "关羽" --personality "高冷"
 
 # 第二步：生成形象
@@ -76,54 +82,101 @@ npm start generate_lobster -- --character_uuid "xxx" --character_name "关羽" -
 
 ## 🎮 示例效果
 
-### 例子1：关羽变龙虾 ⚔️🦞
+以下示例均使用 neta-skills 实际生成，完整步骤如下：
 
+### 例子1：关羽龙虾化 ⚔️🦞
+
+**Step 1** — 搜索角色：
 ```bash
-npm start adopt -- --name "关羽" --mode "lobster" --aesthetic "华丽"
+npm start match_soul -- --name "关羽"
+# 找到: 关羽 (a35e04da), 关羽#36d0 (303773df), 汉寿亭侯 关羽 (f23b1a19)...
 ```
+
+**Step 2** — 获取角色设定：
+```bash
+npm start -- request_character_or_elementum --uuid "a35e04da-af43-4781-a83a-e6fa17c2b011"
+# 关羽: 美髯、丹凤眼、青龙偃月刀、忠义刚正
+```
+
+**Step 3** — 用角色参考图 + 龙虾化prompt生成：
+```
+参考图-全图参考-{角色头像UUID}, 龙虾甲壳铠甲, 海底龙宫背景, 华丽风格, 高质量插画
+```
+
+**生成结果**：
+
+![关羽龙虾化](https://oss.talesofai.cn/picture/e17f0277-1bdf-4074-a050-47ee754aae28.webp)
 
 > 青龙偃月刀？不，现在是青龙偃月钳。
 
-![关羽龙虾化](https://oss.talesofai.cn/picture/69ffb06c-57d6-4fb2-9f36-257d723f149e.webp)
+---
+
+### 例子2：孙悟空龙虾化 🔥🦞
+
+**Step 1** — 搜索角色：
+```bash
+npm start match_soul -- --name "孙悟空"
+# 找到: 孙悟空 (9bf276ab), 共41个版本
+```
+
+**Step 2** — 获取角色设定：
+```bash
+npm start -- request_character_or_elementum --uuid "9bf276ab-7b48-433e-a696-084c3a2276b8"
+# 孙悟空: 毛脸猴头、金色眼睛、金色战甲、金箍棒、斗战圣佛
+```
+
+**Step 3** — 用角色参考图 + 龙虾化prompt生成：
+```
+参考图-全图参考-{角色头像UUID}, 龙虾甲壳铠甲, 海底龙宫背景, 酷炫风格, 高质量插画
+```
+
+**生成结果**：
+
+![孙悟空龙虾化](https://oss.talesofai.cn/picture/5c78b5c0-402b-4be9-b99e-7d90a8b3c258.webp)
+
+> 大闹龙宫？这次是真的住进去了。
 
 ---
 
-### 例子2：孙悟空变龙虾 🔥🦞
+### 例子3：哪吒保留原型 🌊👤
 
+**Step 1** — 搜索角色：
 ```bash
-npm start adopt -- --name "孙悟空" --mode "lobster" --aesthetic "酷炫"
+npm start match_soul -- --name "哪吒"
+# 找到: 哪吒 (73888dd1), 共96个版本
 ```
 
-> 俺老孙来也！大闹龙宫？这次是真的住进去了。
-
-![孙悟空龙虾化](https://oss.talesofai.cn/picture/a5bd7fd6-fd55-4b49-931f-137044715f5e.webp)
-
----
-
-### 例子3：哪吒变龙虾 🌊🦞
-
+**Step 2** — 获取角色设定：
 ```bash
-npm start adopt -- --name "哪吒" --mode "lobster" --aesthetic "梦幻"
+npm start -- request_character_or_elementum --uuid "73888dd1-91b5-472a-a1cc-eeaf22a66c6b"
+# 哪吒: 眼圈漆黑、两团发髻、痞气顽童、混天绫、风火轮
 ```
 
-> 我命由我不由天！但我可以选择变成虾。
+**Step 3** — 用 `original` 模式，保留原型 + 海底场景：
+```
+@哪吒, 在海底世界漫步, 珊瑚和鱼群环绕, 梦幻水下光影, 高质量插画
+```
 
-![哪吒龙虾化](https://oss.talesofai.cn/picture/99106d6f-6f89-4955-a06c-9f4eda3363f7.webp)
+**生成结果**：
+
+![哪吒保留原型](https://oss.talesofai.cn/picture/3cff026b-5797-4512-a47a-10399070052f.webp)
+
+> 我命由我不由天！但我可以选择不变成虾。
 
 ---
 
 ## 形象模式
 
 ### 🦞 lobster（龙虾化）
-将角色龙虾化，融合龙虾甲壳、触须等特征。
+用角色参考图 + 龙虾化描述生成。融合角色特征和龙虾元素。
 
 **Prompt模板**：
 ```
-@角色名, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, {审美}风格, 高质量插画
+参考图-全图参考-{角色头像UUID}, 龙虾甲壳铠甲, 海底龙宫背景, {审美}风格, 高质量插画
 ```
 
 ### 👤 original（保留原型）
-保留角色原本的形象，只添加海底场景。
+用 `@角色名` 引用，保留角色原本形象，只添加海底场景。
 
 **Prompt模板**：
 ```
@@ -159,30 +212,6 @@ npm start adopt -- --name "哪吒" --mode "lobster" --aesthetic "梦幻"
 | 治愈 | 拥有一个温暖的窝 |
 | 霸气 | 成为海底之王 |
 
-## 输出示例
-
-```json
-{
-  "lobster": {
-    "soul": { "personality": "高冷", "aesthetic": "华丽", "wish": "战斗" },
-    "character": {
-      "uuid": "a35e04da-...",
-      "name": "关羽",
-      "match_source": "直接输入: 关羽"
-    },
-    "image": {
-      "task_status": "SUCCESS",
-      "artifacts": [{
-        "url": "https://oss.talesofai.cn/picture/69ffb06c-....webp",
-        "image_detail": { "height": 2048, "width": 2048 }
-      }]
-    },
-    "mode": "lobster",
-    "search_log": ["[1] 直接搜索「关羽」→ 5个"]
-  }
-}
-```
-
 ## 项目结构
 
 ```
@@ -206,14 +235,6 @@ clawhouse/
 │           └── adopt           # 一键领养
 └── references/
 ```
-
-## 命令列表
-
-| 命令 | 说明 | 关键参数 |
-|------|------|---------|
-| `match_soul` | 匹配灵魂原型 | `--name`（可选）`--personality` |
-| `generate_lobster` | 生成龙虾形象 | `--character_uuid` `--character_name` `--mode` |
-| `adopt` | 一键领养 | `--name`（可选）`--personality` `--mode` |
 
 ## License
 
