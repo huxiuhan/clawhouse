@@ -1,0 +1,7 @@
+name: generate_lobster
+title: 生成龙虾形象
+description: |
+  基于匹配到的Neta角色生成龙虾形象。
+  支持两种模式：
+  - original: 保留角色原型风格，添加海底场景
+  - lobster: 龙虾化角色原型，融合龙虾特征

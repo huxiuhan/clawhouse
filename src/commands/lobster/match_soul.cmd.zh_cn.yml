@@ -1,0 +1,5 @@
+name: match_soul
+title: 匹配龙虾灵魂
+description: |
+  根据用户的Soul问答（性格、审美、愿望），从Neta角色库中搜索匹配的角色作为龙虾的灵魂原型。
+  返回匹配的角色列表和Soul档案。
