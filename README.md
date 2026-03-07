@@ -9,13 +9,13 @@
     ↓
 4层优先级搜索匹配Neta角色
     ↓
-获取角色完整设定和参考图
+获取角色完整设定和精确全名
     ↓
 选择形象模式（龙虾化/保留原型）
     ↓
-生成龙虾形象
+用@角色全名引用生成龙虾形象
     ↓
-完成领养
+完成领养 + Soul建议
 ```
 
 ## 依赖
@@ -46,8 +46,8 @@ cp .env.example .env
 # 关羽变龙虾
 npm start adopt -- --name "关羽" --mode "lobster"
 
-# 孙悟空变龙虾
-npm start adopt -- --name "孙悟空" --mode "lobster"
+# 敖丙变龙虾
+npm start adopt -- --name "敖丙" --mode "lobster"
 
 # 哪吒保留原型
 npm start adopt -- --name "哪吒" --mode "original"
@@ -98,43 +98,43 @@ npm start -- request_character_or_elementum --uuid "a35e04da-af43-4781-a83a-e6fa
 # 关羽: 美髯、丹凤眼、青龙偃月刀、忠义刚正
 ```
 
-**Step 3** — 用角色参考图 + 龙虾化prompt生成：
+**Step 3** — 用@角色全名 + 龙虾化prompt生成：
 ```
-参考图-全图参考-{角色头像UUID}, 龙虾甲壳铠甲, 海底龙宫背景, 华丽风格, 高质量插画
+@关羽, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底龙宫背景, 华丽风格, 高质量插画
 ```
 
 **生成结果**：
 
-![关羽龙虾化](https://oss.talesofai.cn/picture/e17f0277-1bdf-4074-a050-47ee754aae28.webp)
+![关羽龙虾化](https://oss.talesofai.cn/picture/5afaea67-8571-4c95-9413-e439b219782e.webp)
 
 > 青龙偃月刀？不，现在是青龙偃月钳。
 
 ---
 
-### 例子2：孙悟空龙虾化 🔥🦞
+### 例子2：敖丙龙虾化 🌊🦞
 
 **Step 1** — 搜索角色：
 ```bash
-npm start match_soul -- --name "孙悟空"
-# 找到: 孙悟空 (9bf276ab), 共41个版本
+npm start match_soul -- --name "敖丙"
+# 找到: 敖丙 (fe27a0b6), 敖丙#ed49 (12ec82d8), 敖丙#d442 (279c1636)...
 ```
 
 **Step 2** — 获取角色设定：
 ```bash
-npm start -- request_character_or_elementum --uuid "9bf276ab-7b48-433e-a696-084c3a2276b8"
-# 孙悟空: 毛脸猴头、金色眼睛、金色战甲、金箍棒、斗战圣佛
+npm start -- request_character_or_elementum --uuid "fe27a0b6-4d90-4b87-ae3d-de83db55fce4"
+# 敖丙: 龙王之子、冷酷、强大、海底王子
 ```
 
-**Step 3** — 用角色参考图 + 龙虾化prompt生成：
+**Step 3** — 用@角色全名 + 龙虾化prompt生成：
 ```
-参考图-全图参考-{角色头像UUID}, 龙虾甲壳铠甲, 海底龙宫背景, 酷炫风格, 高质量插画
+@敖丙, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底龙宫背景, 梦幻风格, 高质量插画
 ```
 
 **生成结果**：
 
-![孙悟空龙虾化](https://oss.talesofai.cn/picture/5c78b5c0-402b-4be9-b99e-7d90a8b3c258.webp)
+![敖丙龙虾化](https://oss.talesofai.cn/picture/dd652342-1159-4865-b7fa-d2db34ba44e6.webp)
 
-> 大闹龙宫？这次是真的住进去了。
+> 龙王之子变成了虾王之子。
 
 ---
 
@@ -154,7 +154,7 @@ npm start -- request_character_or_elementum --uuid "73888dd1-91b5-472a-a1cc-eeaf
 
 **Step 3** — 用 `original` 模式，保留原型 + 海底场景：
 ```
-@哪吒, 在海底世界漫步, 珊瑚和鱼群环绕, 梦幻水下光影, 高质量插画
+@哪吒, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
 ```
 
 **生成结果**：
@@ -184,11 +184,11 @@ npm start -- request_character_or_elementum --uuid "73888dd1-91b5-472a-a1cc-eeaf
 ## 形象模式
 
 ### 🦞 lobster（龙虾化）
-用角色参考图 + 龙虾化描述生成。融合角色特征和龙虾元素。
+用@角色全名 + 龙虾化描述生成。融合角色特征和龙虾元素。
 
 **Prompt模板**：
 ```
-参考图-全图参考-{角色头像UUID}, 龙虾甲壳铠甲, 海底龙宫背景, {审美}风格, 高质量插画
+@角色全名, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底龙宫背景, {审美}风格, 高质量插画
 ```
 
 ### 👤 original（保留原型）
