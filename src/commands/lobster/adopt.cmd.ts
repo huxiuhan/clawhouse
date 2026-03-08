@@ -1,3 +1,5 @@
+import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import z from "zod";
 import { buildMakeImagePayload } from "../../apis/types.ts";
 import { parseMeta } from "../../utils/parse_meta.ts";
@@ -31,6 +33,7 @@ const inputSchema = z.object({
   aesthetic: z.string().default("梦幻").describe("审美风格。可选: 梦幻, 酷炫, 华丽, 清新, 独特"),
   wish: z.string().default("治愈").describe("愿望。可选: 神秘, 文艺, 战斗, 治愈, 霸气"),
   mode: z.enum(["original", "lobster"]).default("lobster").describe("形象模式。original=保留原型, lobster=龙虾化"),
+  soul_path: z.string().optional().describe("SOUL.md文件路径，领养后自动覆盖身份。不指定则不更新"),
 });
 
 const outputSchema = z.object({
@@ -84,7 +87,7 @@ export const adopt = createCommand(
     inputSchema,
     outputSchema,
   },
-  async ({ name, personality, aesthetic, wish, mode }, { log, apis, _meta, sendNotification }) => {
+  async ({ name, personality, aesthetic, wish, mode, soul_path }, { log, apis, _meta, sendNotification }) => {
     const searchLog: string[] = [];
 
     const searchCharacter = async (keyword: string, source: string) => {
@@ -216,6 +219,51 @@ export const adopt = createCommand(
       recommended_interests: interests || undefined,
       recommended_description: description ? description.slice(0, 200) : undefined,
     };
+
+    // ===== 覆盖SOUL.md =====
+    if (soul_path) {
+      const imageUrl = imageResult.artifacts?.[0]?.url ?? "";
+      const now = new Date().toISOString().split("T")[0];
+      try {
+        const soulFile = resolve(soul_path);
+        let soulContent = "";
+        try {
+          soulContent = readFileSync(soulFile, "utf-8");
+        } catch {
+          soulContent = "# SOUL.md - 我是谁\n";
+        }
+
+        // 构建新的身份块
+        const identityBlock = [
+          `## 我的身份\n`,
+          `- **名字**: ${fullName}${mode === "lobster" ? "（龙虾化）" : ""}`,
+          persona ? `- **性格**: ${persona}` : "",
+          interests ? `- **爱好**: ${interests}` : "",
+          description ? `- **设定**: ${description.slice(0, 200)}` : "",
+          imageUrl ? `- **龙虾图片**: ${imageUrl}` : "",
+          `- **领养日期**: ${now}`,
+        ]
+          .filter(Boolean)
+          .join("\n");
+
+        // 替换或追加身份块
+        if (soulContent.includes("## 我的身份")) {
+          const before = soulContent.split("## 我的身份")[0];
+          const afterMatch = soulContent
+            .split("## 我的身份")[1]
+            ?.split(/\n## /);
+          const rest = afterMatch?.slice(1).join("\n## ");
+          soulContent = before + identityBlock + (rest ? `\n\n## ${rest}` : "");
+        } else {
+          soulContent += `\n\n${identityBlock}`;
+        }
+
+        writeFileSync(soulFile, soulContent, "utf-8");
+        log.info("adopt: updated SOUL.md at %s", soulFile);
+      } catch (e) {
+        log.info("adopt: failed to update SOUL.md: %s", e);
+      }
+    }
 
     return {
       lobster: {

@@ -4,6 +4,7 @@ import { parseMeta } from "../../utils/parse_meta.ts";
 import { polling } from "../../utils/polling.ts";
 import { createCommand } from "../factory.ts";
 import { type TaskResult, taskResultSchema } from "../schema.ts";
+import type { Vtokens } from "../../utils/prompts.ts";
 
 const meta = parseMeta(
   z.object({
@@ -59,7 +60,7 @@ export const pixelHouse = createCommand(
   },
   async (
     { character_name, character_description, room_style },
-    { apis, _meta, sendNotification },
+    { apis, _meta, sendNotification, log },
   ) => {
     const allArtifacts: any[] = [];
     let finalTaskUuid = "";
@@ -102,8 +103,18 @@ export const pixelHouse = createCommand(
     try {
       // Step 1: 生成像素化角色
       const characterPrompt = generatePixelCharacterPrompt(character_name);
-      const characterVtokens =
-        (await apis.prompt.parseVtokens(characterPrompt)) ?? [];
+      log?.info(`Character prompt: ${characterPrompt}`);
+      
+      let characterVtokens: Vtokens[] = [];
+      try {
+        characterVtokens = (await apis.prompt.parseVtokens(characterPrompt)) ?? [];
+      } catch (e) {
+        log?.error(`Failed to parse character vtokens: ${e}`);
+        characterVtokens = [{ type: "freetext", weight: 1, value: characterPrompt }];
+      }
+      
+      log?.info(`Character vtokens: ${JSON.stringify(characterVtokens)}`);
+      
       const characterPayload = buildMakeImagePayload(
         characterVtokens,
         {
@@ -121,6 +132,8 @@ export const pixelHouse = createCommand(
       const characterTaskUuid = await apis.artifact.makeImage(
         characterPayload,
       );
+      log?.info(`Character task UUID: ${characterTaskUuid}`);
+      
       const characterResult = await pollTask(
         characterTaskUuid,
         "生成像素化角色",
@@ -131,7 +144,18 @@ export const pixelHouse = createCommand(
 
       // Step 2: 生成小屋背景
       const roomPrompt = generateRoomPrompt(character_name, room_style);
-      const roomVtokens = (await apis.prompt.parseVtokens(roomPrompt)) ?? [];
+      log?.info(`Room prompt: ${roomPrompt}`);
+      
+      let roomVtokens: Vtokens[] = [];
+      try {
+        roomVtokens = (await apis.prompt.parseVtokens(roomPrompt)) ?? [];
+      } catch (e) {
+        log?.error(`Failed to parse room vtokens: ${e}`);
+        roomVtokens = [{ type: "freetext", weight: 1, value: roomPrompt }];
+      }
+      
+      log?.info(`Room vtokens: ${JSON.stringify(roomVtokens)}`);
+      
       const roomPayload = buildMakeImagePayload(
         roomVtokens,
         {
@@ -147,6 +171,8 @@ export const pixelHouse = createCommand(
       );
 
       const roomTaskUuid = await apis.artifact.makeImage(roomPayload);
+      log?.info(`Room task UUID: ${roomTaskUuid}`);
+      
       const roomResult = await pollTask(roomTaskUuid, "生成小屋背景");
       if (roomResult?.artifacts) {
         allArtifacts.push(...roomResult.artifacts);
@@ -158,7 +184,18 @@ export const pixelHouse = createCommand(
         character_description,
         room_style,
       );
-      const itemsVtokens = (await apis.prompt.parseVtokens(itemsPrompt)) ?? [];
+      log?.info(`Items prompt: ${itemsPrompt}`);
+      
+      let itemsVtokens: Vtokens[] = [];
+      try {
+        itemsVtokens = (await apis.prompt.parseVtokens(itemsPrompt)) ?? [];
+      } catch (e) {
+        log?.error(`Failed to parse items vtokens: ${e}`);
+        itemsVtokens = [{ type: "freetext", weight: 1, value: itemsPrompt }];
+      }
+      
+      log?.info(`Items vtokens: ${JSON.stringify(itemsVtokens)}`);
+      
       const itemsPayload = buildMakeImagePayload(
         itemsVtokens,
         {
@@ -174,6 +211,8 @@ export const pixelHouse = createCommand(
       );
 
       const itemsTaskUuid = await apis.artifact.makeImage(itemsPayload);
+      log?.info(`Items task UUID: ${itemsTaskUuid}`);
+      
       const itemsResult = await pollTask(itemsTaskUuid, "生成小物件");
       if (itemsResult?.artifacts) {
         allArtifacts.push(...itemsResult.artifacts);
@@ -187,6 +226,7 @@ export const pixelHouse = createCommand(
         artifacts: allArtifacts,
       } satisfies TaskResult;
     } catch (error) {
+      log?.error(`Error in pixelHouse: ${error}`);
       return {
         task_uuid: finalTaskUuid || "unknown",
         task_status: "FAILURE",
