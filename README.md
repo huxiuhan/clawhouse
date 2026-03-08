@@ -84,34 +84,7 @@ npm start generate_lobster -- --character_uuid "xxx" --character_name "关羽" -
 
 以下示例均使用 neta-skills 实际生成，完整步骤如下：
 
-### 例子1：关羽龙虾化 ⚔️🦞
-
-**Step 1** — 搜索角色：
-```bash
-npm start match_soul -- --name "关羽"
-# 找到: 关羽 (a35e04da), 关羽#36d0 (303773df), 汉寿亭侯 关羽 (f23b1a19)...
-```
-
-**Step 2** — 获取角色设定：
-```bash
-npm start -- request_character_or_elementum --uuid "a35e04da-af43-4781-a83a-e6fa17c2b011"
-# 关羽: 美髯、丹凤眼、青龙偃月刀、忠义刚正
-```
-
-**Step 3** — 用@角色全名 + 龙虾化prompt生成：
-```
-@关羽, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底龙宫背景, 华丽风格, 高质量插画
-```
-
-**生成结果**：
-
-![关羽龙虾化](https://oss.talesofai.cn/picture/5afaea67-8571-4c95-9413-e439b219782e.webp)
-
-> 青龙偃月刀？不，现在是青龙偃月钳。
-
----
-
-### 例子2：敖丙龙虾化 🌊🦞
+### 例子1：敖丙保留原型 🌊👤
 
 **Step 1** — 搜索角色：
 ```bash
@@ -119,49 +92,58 @@ npm start match_soul -- --name "敖丙"
 # 找到: 敖丙 (fe27a0b6), 敖丙#ed49 (12ec82d8), 敖丙#d442 (279c1636)...
 ```
 
-**Step 2** — 获取角色设定：
-```bash
-npm start -- request_character_or_elementum --uuid "fe27a0b6-4d90-4b87-ae3d-de83db55fce4"
-# 敖丙: 龙王之子、冷酷、强大、海底王子
+**Step 2** — 用 `original` 模式，保留原型 + 海底场景：
 ```
-
-**Step 3** — 用@角色全名 + 龙虾化prompt生成：
-```
-@敖丙, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底龙宫背景, 梦幻风格, 高质量插画
+@敖丙, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
 ```
 
 **生成结果**：
 
-![敖丙龙虾化](https://oss.talesofai.cn/picture/dd652342-1159-4865-b7fa-d2db34ba44e6.webp)
+![敖丙保留原型](https://oss.talesofai.cn/picture/872e2baf-a192-405f-b804-d99a7eeb287f.webp)
 
-> 龙王之子变成了虾王之子。
+> 龙王之子在海底宫殿中，依然优雅从容。
 
 ---
 
-### 例子3：哪吒保留原型 🌊👤
+### 例子2：悟空保留原型 🌊👤
 
 **Step 1** — 搜索角色：
 ```bash
-npm start match_soul -- --name "哪吒"
-# 找到: 哪吒 (73888dd1), 共96个版本
+npm start match_soul -- --name "悟空"
+# 找到: 悟空 (25ec3477)...
 ```
 
-**Step 2** — 获取角色设定：
-```bash
-npm start -- request_character_or_elementum --uuid "73888dd1-91b5-472a-a1cc-eeaf22a66c6b"
-# 哪吒: 眼圈漆黑、两团发髻、痞气顽童、混天绫、风火轮
+**Step 2** — 用 `original` 模式，保留原型 + 海底场景：
 ```
-
-**Step 3** — 用 `original` 模式，保留原型 + 海底场景：
-```
-@哪吒, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
+@悟空, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
 ```
 
 **生成结果**：
 
-![哪吒保留原型](https://oss.talesofai.cn/picture/3cff026b-5797-4512-a47a-10399070052f.webp)
+![悟空保留原型](https://oss.talesofai.cn/picture/f0fe33cb-759a-490a-bc45-5f6d227cfbcb.webp)
 
-> 我命由我不由天！但我可以选择不变成虾。
+> 齐天大圣闹完天宫，又来闹龙宫了。
+
+---
+
+### 例子3：关羽#36d0 保留原型 ⚔️👤
+
+**Step 1** — 搜索角色：
+```bash
+npm start match_soul -- --name "关羽"
+# 找到: 关羽 (a35e04da), 关羽#36d0 (303773df), 汉寿亭侯 关羽 (f23b1a19)...
+```
+
+**Step 2** — 用 `original` 模式，保留原型 + 海底场景：
+```
+@关羽#36d0, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
+```
+
+**生成结果**：
+
+![关羽#36d0保留原型](https://oss.talesofai.cn/picture/8a6d584c-b211-4d65-a711-688aa19c8642.webp)
+
+> 美髯公在海底，依然忠义刚正。
 
 ---
 
