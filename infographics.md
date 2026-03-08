@@ -45,7 +45,7 @@
 
 在画面底部添加仿终端代码条（简洁两行）：
 npm start adopt -- --name "关羽" --mode "lobster"
-npm start travel --
+npm start -- travel
 
 版式与可用性要求：
 - 保证中间 70% 区域信息最清晰，方便 GitHub Banner 裁切

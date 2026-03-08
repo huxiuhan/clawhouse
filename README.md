@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./banner.jpg" alt="ClawHouse Banner" width="100%" />
+</p>
+
 # ClawHouse
 
 龙虾领养馆。  
@@ -65,7 +69,7 @@ npm run dev -- --help
 ### 第一步：领养
 
 ```bash
-npm start adopt -- --name "关羽" --mode "lobster"
+npm start -- adopt --name "关羽" --mode "lobster"
 ```
 
 这一步会：
@@ -77,7 +81,7 @@ npm start adopt -- --name "关羽" --mode "lobster"
 ### 第二步：旅行
 
 ```bash
-npm start travel --
+npm start -- travel
 ```
 
 这一步会：
@@ -86,6 +90,93 @@ npm start travel --
 2. 自动发现一个玩法。
 3. 读取玩法详情（`read_collection` 语义流程）。
 4. 用玩法模板 + 角色生成旅行图。
+
+## 亮点案例库（实测）
+
+### 案例 1：敖丙龙虾化（`adopt + mode=lobster`）
+
+命令：
+
+```bash
+npm start -- adopt --name "敖丙" --mode "lobster"
+```
+
+关键结果：
+
+1. 角色匹配到「敖丙」相关角色。
+2. 生成龙虾化形象（海底场景）。
+3. `SOUL.md` 会更新当前身份。
+
+示例图：
+
+![敖丙龙虾化](https://oss.talesofai.cn/picture/d240ecec-d164-4c54-9eb3-7f1c98e9ba18.webp)
+
+### 案例 2：悟空龙虾化（`adopt + mode=lobster`）
+
+命令：
+
+```bash
+npm start -- adopt --name "悟空" --mode "lobster"
+```
+
+关键结果：
+
+1. 匹配到悟空角色原型。
+2. 按龙虾化模板生成角色图。
+3. 输出包含图片 `task_uuid` 与最终图片 URL。
+
+示例图：
+
+![悟空龙虾化](https://oss.talesofai.cn/picture/664e0592-1e5e-4d49-b0a7-6d99bf73de74.webp)
+
+### 案例 3：关羽保留原型（`adopt + mode=original`）
+
+命令：
+
+```bash
+npm start -- adopt --name "关羽#36d0" --mode "original"
+```
+
+关键结果：
+
+1. 保留角色原本形象，不做龙虾化。
+2. 添加海底场景并输出最终图片。
+3. `SOUL.md` 更新为当前领养身份。
+
+示例图：
+
+![关羽#36d0保留原型](https://oss.talesofai.cn/picture/8a6d584c-b211-4d65-a711-688aa19c8642.webp)
+
+### 案例 4：自动发现玩法旅行（`travel`）
+
+命令：
+
+```bash
+npm start -- travel
+```
+
+关键结果（一次实测，2026-03-08）：
+
+```json
+{
+  "travel": {
+    "character_name": "关羽",
+    "destination": {
+      "uuid": "36c6518a-98f2-4324-8a47-ca7667c8fc37",
+      "name": "师弟/妹,愿同我一起下山么？",
+      "url": "https://app.nieta.art/collection/interaction?uuid=36c6518a-98f2-4324-8a47-ca7667c8fc37"
+    },
+    "image": {
+      "task_uuid": "db2393a5-5e24-43cb-8392-7b5134f8f90a",
+      "url": "https://oss.talesofai.cn/picture/db2393a5-5e24-43cb-8392-7b5134f8f90a.webp"
+    }
+  }
+}
+```
+
+示例图：
+
+![关羽自动发现玩法旅行](https://oss.talesofai.cn/picture/db2393a5-5e24-43cb-8392-7b5134f8f90a.webp)
 
 ## 命令地图
 
@@ -136,93 +227,6 @@ npm run dev -- travel --help
 4. 取 `cta_info.launch_prompt.core_input`（或 choices）作为模板。
 5. 模板太长触发解析错误时，自动降级为通用 prompt，保证命令不直接失败。
 
-## 实测案例集（命令 + 关键结果 + 示例图）
-
-### 案例 1：敖丙龙虾化（`adopt + mode=lobster`）
-
-命令：
-
-```bash
-npm start adopt -- --name "敖丙" --mode "lobster"
-```
-
-关键结果：
-
-1. 角色匹配到「敖丙」相关角色。
-2. 生成龙虾化形象（海底场景）。
-3. `SOUL.md` 会更新当前身份。
-
-示例图：
-
-![敖丙龙虾化](https://oss.talesofai.cn/picture/d240ecec-d164-4c54-9eb3-7f1c98e9ba18.webp)
-
-### 案例 2：悟空龙虾化（`adopt + mode=lobster`）
-
-命令：
-
-```bash
-npm start adopt -- --name "悟空" --mode "lobster"
-```
-
-关键结果：
-
-1. 匹配到悟空角色原型。
-2. 按龙虾化模板生成角色图。
-3. 输出包含图片 `task_uuid` 与最终图片 URL。
-
-示例图：
-
-![悟空龙虾化](https://oss.talesofai.cn/picture/664e0592-1e5e-4d49-b0a7-6d99bf73de74.webp)
-
-### 案例 3：关羽保留原型（`adopt + mode=original`）
-
-命令：
-
-```bash
-npm start adopt -- --name "关羽#36d0" --mode "original"
-```
-
-关键结果：
-
-1. 保留角色原本形象，不做龙虾化。
-2. 添加海底场景并输出最终图片。
-3. `SOUL.md` 更新为当前领养身份。
-
-示例图：
-
-![关羽#36d0保留原型](https://oss.talesofai.cn/picture/8a6d584c-b211-4d65-a711-688aa19c8642.webp)
-
-### 案例 4：自动发现玩法旅行（`travel`）
-
-命令：
-
-```bash
-npm start travel --
-```
-
-关键结果（一次实测，2026-03-08）：
-
-```json
-{
-  "travel": {
-    "character_name": "关羽",
-    "destination": {
-      "uuid": "36c6518a-98f2-4324-8a47-ca7667c8fc37",
-      "name": "师弟/妹,愿同我一起下山么？",
-      "url": "https://app.nieta.art/collection/interaction?uuid=36c6518a-98f2-4324-8a47-ca7667c8fc37"
-    },
-    "image": {
-      "task_uuid": "db2393a5-5e24-43cb-8392-7b5134f8f90a",
-      "url": "https://oss.talesofai.cn/picture/db2393a5-5e24-43cb-8392-7b5134f8f90a.webp"
-    }
-  }
-}
-```
-
-示例图：
-
-![关羽自动发现玩法旅行](https://oss.talesofai.cn/picture/db2393a5-5e24-43cb-8392-7b5134f8f90a.webp)
-
 ## 给 OpenClaw 的学习路径
 
 如果你让 OpenClaw 接手这个仓库，建议按下面顺序：
@@ -230,7 +234,7 @@ npm start travel --
 1. 跑 `npm run dev -- --help`，确认命令装载无误。
 2. 跑 `match_soul`，检查角色检索是否工作。
 3. 跑 `adopt`，验证图像生成 + `SOUL.md` 写入。
-4. 跑 `travel --`，验证自动发现 + 玩法读取 + 旅行图生成。
+4. 跑 `travel`，验证自动发现 + 玩法读取 + 旅行图生成。
 5. 跑 `pixel_house`，验证扩展玩法链路。
 
 这样可以快速判断：账号权限、网络、API、命令参数、文件写入是否都正常。

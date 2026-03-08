@@ -154,10 +154,10 @@ npm start adopt -- --name "关羽#36d0" --mode "lobster"
 
 ```bash
 # 方式1：指定目的地
-npm start travel -- --collection_uuid "c2bff06a-7b29-4b47-ae90-ae9f5d59754f"
+npm start -- travel --collection_uuid "c2bff06a-7b29-4b47-ae90-ae9f5d59754f"
 
 # 方式2：自动推荐
-npm start travel --
+npm start -- travel
 ```
 
 **执行步骤**：
@@ -241,7 +241,7 @@ npm start adopt -- --name "关羽#36d0" --mode "lobster"
 
 **第二步：去旅游**
 ```bash
-npm start travel -- --collection_uuid "c2bff06a-7b29-4b47-ae90-ae9f5d59754f"
+npm start -- travel --collection_uuid "c2bff06a-7b29-4b47-ae90-ae9f5d59754f"
 ```
 
 输出：
@@ -250,7 +250,7 @@ npm start travel -- --collection_uuid "c2bff06a-7b29-4b47-ae90-ae9f5d59754f"
 
 **第三步：再去另一个玩法旅游**
 ```bash
-npm start travel --
+npm start -- travel
 ```
 
 输出：
