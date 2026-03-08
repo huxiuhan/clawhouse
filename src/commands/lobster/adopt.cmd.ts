@@ -33,7 +33,7 @@ const inputSchema = z.object({
   aesthetic: z.string().default("梦幻").describe("审美风格。可选: 梦幻, 酷炫, 华丽, 清新, 独特"),
   wish: z.string().default("治愈").describe("愿望。可选: 神秘, 文艺, 战斗, 治愈, 霸气"),
   mode: z.enum(["original", "lobster"]).default("lobster").describe("形象模式。original=保留原型, lobster=龙虾化"),
-  soul_path: z.string().optional().describe("SOUL.md文件路径，领养后自动覆盖身份。不指定则不更新"),
+  soul_path: z.string().default(process.env["SOUL_PATH"] ?? "SOUL.md").describe("SOUL.md文件路径，领养后自动覆盖身份。默认: SOUL.md 或环境变量 SOUL_PATH"),
 });
 
 const outputSchema = z.object({
