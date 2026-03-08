@@ -5,6 +5,12 @@
 <h1 align="center">ClawHouse · 龙虾领养馆</h1>
 
 <p align="center">
+  <strong>语言 / Language:</strong>
+  <a href="./README.md">中文</a> |
+  <a href="./README_EN.md">English</a>
+</p>
+
+<p align="center">
   把 Neta 角色当作灵魂原型，完成「领养 -> 旅行 -> 扩展玩法」的完整闭环。
 </p>
 
