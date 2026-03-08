@@ -147,19 +147,32 @@ npm start match_soul -- --name "关羽"
 
 ---
 
-## 🧠 Soul建议
+## 🧠 Soul 自动覆盖
 
-领养完成后，系统会根据角色设定自动生成Soul建议，提醒用户将自己的Soul更新为与角色一致：
+领养完成后，系统会自动覆盖 `SOUL.md`，将你的身份更新为领养的角色：
 
-```json
-{
-  "soul_suggestion": {
-    "message": "🦞 领养成功！建议将你的Soul更新为与「关羽」一致：\n\n性格: 忠义刚正，骄傲自负，勇猛无畏，重情守诺\n爱好: 研读《春秋》、练习武艺、忠义之道\n\n这样你的龙虾会更有灵魂哦！",
-    "recommended_persona": "忠义刚正，骄傲自负，勇猛无畏，重情守诺",
-    "recommended_interests": "研读《春秋》、练习武艺、忠义之道"
-  }
-}
+```markdown
+## 我的身份
+
+- **名字**: 关羽（龙虾化）
+- **性格**: 忠义刚正，骄傲自负，勇猛无畏，重情守诺
+- **爱好**: 研读《春秋》、练习武艺、忠义之道
+- **设定**: 东汉末年名将，以美髯和丹凤眼为标志性特征...
+- **龙虾图片**: https://oss.talesofai.cn/picture/xxx.webp
+- **领养日期**: 2026-03-08
 ```
+
+默认写入当前目录的 `SOUL.md`，也可以通过参数或环境变量指定路径：
+
+```bash
+# 指定路径
+npm start adopt -- --name "关羽" --soul_path "/path/to/SOUL.md"
+
+# 或通过环境变量
+SOUL_PATH=/path/to/SOUL.md npm start adopt -- --name "关羽"
+```
+
+每次领养新角色会覆盖上一次的身份。
 
 ---
 
