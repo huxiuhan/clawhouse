@@ -139,6 +139,32 @@ npm start -- travel
 
 ![关羽自动发现运动报告玩法](https://oss.talesofai.cn/picture/a827727f-f7dc-4ad5-b536-1082b98da5a9.webp)
 
+### 案例 6：像素小屋地图（`house + stardew`）
+
+命令：
+
+```bash
+npm start -- house --map_style stardew --room_style 温暖
+```
+
+关键结果（一次实测，2026-03-08）：
+
+```json
+{
+  "task_uuid": "0086e608-f654-409f-866e-73a8e2f6e939",
+  "task_status": "SUCCESS",
+  "artifacts": [
+    {
+      "url": "https://oss.talesofai.cn/picture/0086e608-f654-409f-866e-73a8e2f6e939.webp"
+    }
+  ]
+}
+```
+
+示例图：
+
+![关羽像素小屋地图（stardew）](https://oss.talesofai.cn/picture/0086e608-f654-409f-866e-73a8e2f6e939.webp)
+
 ## 30 秒跑通（最短路径）
 
 ### 第一步：领养
