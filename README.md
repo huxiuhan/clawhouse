@@ -109,32 +109,34 @@ npm start travel -- --soul_path "/path/to/SOUL.md"
 4. **生成旅行图片** → 用角色名 + 玩法模板生成
 5. **返回结果** → 旅行图片URL + 玩法链接
 
-### 示例：关羽#36d0的梦幻旅行
+### 示例：自动发现新玩法（实测）
 
 ```bash
-npm start travel -- --collection_uuid "c2bff06a-7b29-4b47-ae90-ae9f5d59754f"
+npm start travel --
 ```
 
 **输出**：
 ```json
 {
   "travel": {
-    "character_name": "关羽#36d0",
+    "character_name": "关羽",
     "destination": {
-      "name": "旋转的梦啊，永不醒",
-      "url": "https://app.nieta.art/collection/interaction?uuid=c2bff06a-..."
+      "uuid": "36c6518a-98f2-4324-8a47-ca7667c8fc37",
+      "name": "师弟/妹,愿同我一起下山么？",
+      "url": "https://app.nieta.art/collection/interaction?uuid=36c6518a-98f2-4324-8a47-ca7667c8fc37"
     },
     "image": {
-      "url": "https://oss.talesofai.cn/picture/25b6b25a-..."
+      "task_uuid": "db2393a5-5e24-43cb-8392-7b5134f8f90a",
+      "url": "https://oss.talesofai.cn/picture/db2393a5-5e24-43cb-8392-7b5134f8f90a.webp"
     }
   }
 }
 ```
 
 **旅行照片** 👇
-![关羽#36d0梦幻旅行](https://oss.talesofai.cn/picture/25b6b25a-b7b4-4008-a8cb-14d9771c416b.webp)
+![关羽自动发现玩法旅行](https://oss.talesofai.cn/picture/db2393a5-5e24-43cb-8392-7b5134f8f90a.webp)
 
-> 武圣关云长踏入了旋转的梦境，青龙偃月刀在梦幻光影中闪烁。
+> 自动发现新玩法后，系统会先读取玩法详情和模板，再生成对应旅行图。
 
 ## 🔍 4层搜索优先级
 
