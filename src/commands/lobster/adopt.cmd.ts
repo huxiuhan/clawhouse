@@ -33,16 +33,11 @@ const inputSchema = z.object({
   aesthetic: z.string().default("梦幻").describe("审美风格。可选: 梦幻, 酷炫, 华丽, 清新, 独特"),
   wish: z.string().default("治愈").describe("愿望。可选: 神秘, 文艺, 战斗, 治愈, 霸气"),
   mode: z.enum(["original", "lobster"]).default("lobster").describe("形象模式。original=保留原型, lobster=龙虾化"),
-  soul_path: z.string().default(process.env["SOUL_PATH"] ?? "SOUL.md").describe("SOUL.md文件路径，领养后自动覆盖身份。默认: SOUL.md 或环境变量 SOUL_PATH"),
+  soul_path: z.string().default(process.env["SOUL_PATH"] ?? "SOUL.md").describe("SOUL.md文件路径。默认: SOUL.md 或环境变量 SOUL_PATH"),
 });
 
 const outputSchema = z.object({
   lobster: z.object({
-    soul: z.object({
-      personality: z.string(),
-      aesthetic: z.string(),
-      wish: z.string(),
-    }),
     character: z.object({
       uuid: z.string(),
       name: z.string(),
@@ -59,12 +54,8 @@ const outputSchema = z.object({
     }),
     mode: z.string(),
     search_log: z.array(z.string()),
-    soul_suggestion: z.object({
-      message: z.string(),
-      recommended_persona: z.string().optional(),
-      recommended_interests: z.string().optional(),
-      recommended_description: z.string().optional(),
-    }),
+    soul_updated: z.boolean(),
+    soul_path: z.string(),
   }),
 });
 
@@ -79,6 +70,50 @@ function buildLobsterPrompt(
   return `@${fullName}, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, ${aesthetic}风格, 高质量插画`;
 }
 
+function updateSoulFile(
+  soulPath: string,
+  fullName: string,
+  mode: string,
+  persona: string,
+  interests: string,
+  description: string,
+  imageUrl: string,
+): boolean {
+  const now = new Date().toISOString().split("T")[0];
+  const soulFile = resolve(soulPath);
+
+  let soulContent = "";
+  try {
+    soulContent = readFileSync(soulFile, "utf-8");
+  } catch {
+    soulContent = "# SOUL.md - 我是谁\n";
+  }
+
+  const identityBlock = [
+    `## 我的身份\n`,
+    `- **名字**: ${fullName}${mode === "lobster" ? "（龙虾化）" : ""}`,
+    persona ? `- **性格**: ${persona}` : "",
+    interests ? `- **爱好**: ${interests}` : "",
+    description ? `- **设定**: ${description.slice(0, 200)}` : "",
+    imageUrl ? `- **龙虾图片**: ${imageUrl}` : "",
+    `- **领养日期**: ${now}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  if (soulContent.includes("## 我的身份")) {
+    const before = soulContent.split("## 我的身份")[0];
+    const afterMatch = soulContent.split("## 我的身份")[1]?.split(/\n## /);
+    const rest = afterMatch?.slice(1).join("\n## ");
+    soulContent = before + identityBlock + (rest ? `\n\n## ${rest}` : "");
+  } else {
+    soulContent += `\n\n${identityBlock}`;
+  }
+
+  writeFileSync(soulFile, soulContent, "utf-8");
+  return true;
+}
+
 export const adopt = createCommand(
   {
     name: meta.name,
@@ -87,7 +122,7 @@ export const adopt = createCommand(
     inputSchema,
     outputSchema,
   },
-  async ({ name, personality, aesthetic, wish, mode, soul_path }, { log, apis, _meta, sendNotification }) => {
+  async ({ name, personality, aesthetic, mode, soul_path }, { log, apis, _meta, sendNotification }) => {
     const searchLog: string[] = [];
 
     const searchCharacter = async (keyword: string, source: string) => {
@@ -105,7 +140,7 @@ export const adopt = createCommand(
     let matched: any = null;
     let matchSource = "";
 
-    // ===== 第1层：用户直接输入的名字 =====
+    // 第1层：用户直接输入的名字
     if (name) {
       const list = await searchCharacter(name, "[1] 直接搜索");
       if (list.length > 0) {
@@ -114,7 +149,7 @@ export const adopt = createCommand(
       }
     }
 
-    // ===== 第3层：根据性格猜测知名角色 =====
+    // 第3层：根据性格猜测知名角色
     if (!matched) {
       const famousNames = PERSONALITY_TO_FAMOUS[personality] ?? [];
       for (const famousName of famousNames) {
@@ -127,7 +162,7 @@ export const adopt = createCommand(
       }
     }
 
-    // ===== 第4层：性格关键词兜底 =====
+    // 第4层：性格关键词兜底
     if (!matched) {
       const list = await searchCharacter(personality, "[4] 关键词兜底");
       if (list.length > 0) {
@@ -141,22 +176,25 @@ export const adopt = createCommand(
       throw new Error("没有找到匹配的角色");
     }
 
-    // ===== 获取角色完整设定 =====
+    // 获取角色完整设定
     const fullName = matched.name as string;
-    log.info("adopt: matched %s (full_name: %s) via %s", matched.name, fullName, matchSource);
+    log.info("adopt: matched %s via %s", fullName, matchSource);
 
-    let characterDetail: any = null;
+    let persona = "";
+    let interests = "";
+    let description = "";
     try {
       const profile = await apis.tcp.tcpProfile(matched.uuid);
       if (profile?.oc_bio) {
-        characterDetail = profile.oc_bio;
+        persona = profile.oc_bio.persona ?? "";
+        interests = profile.oc_bio.interests ?? "";
+        description = profile.oc_bio.description ?? "";
       }
-      log.info("adopt: got character detail for %s", fullName);
-    } catch (e) {
+    } catch {
       log.info("adopt: failed to get character detail, continuing without it");
     }
 
-    // ===== 生成龙虾形象（用精确全名引用）=====
+    // 生成龙虾形象
     const aestheticKeyword = AESTHETIC_MAP[aesthetic] ?? aesthetic;
     const prompt = buildLobsterPrompt(fullName, mode, aestheticKeyword);
     log.info("adopt: prompt: %s", prompt);
@@ -203,71 +241,18 @@ export const adopt = createCommand(
       ? { task_uuid, task_status: "TIMEOUT", artifacts: [] }
       : res.result;
 
-    // ===== 生成Soul建议 =====
-    const persona = characterDetail?.persona ?? "";
-    const interests = characterDetail?.interests ?? "";
-    const description = characterDetail?.description ?? "";
-
-    const soulSuggestion = {
-      message: persona
-        ? `🦞 领养成功！建议将你的Soul更新为与「${fullName}」一致：\n\n` +
-          `性格: ${persona}\n` +
-          (interests ? `爱好: ${interests}\n` : "") +
-          `\n这样你的龙虾会更有灵魂哦！`
-        : `🦞 领养成功！你可以根据「${fullName}」的特点来定义你的龙虾Soul。`,
-      recommended_persona: persona || undefined,
-      recommended_interests: interests || undefined,
-      recommended_description: description ? description.slice(0, 200) : undefined,
-    };
-
-    // ===== 覆盖SOUL.md =====
-    if (soul_path) {
-      const imageUrl = imageResult.artifacts?.[0]?.url ?? "";
-      const now = new Date().toISOString().split("T")[0];
-      try {
-        const soulFile = resolve(soul_path);
-        let soulContent = "";
-        try {
-          soulContent = readFileSync(soulFile, "utf-8");
-        } catch {
-          soulContent = "# SOUL.md - 我是谁\n";
-        }
-
-        // 构建新的身份块
-        const identityBlock = [
-          `## 我的身份\n`,
-          `- **名字**: ${fullName}${mode === "lobster" ? "（龙虾化）" : ""}`,
-          persona ? `- **性格**: ${persona}` : "",
-          interests ? `- **爱好**: ${interests}` : "",
-          description ? `- **设定**: ${description.slice(0, 200)}` : "",
-          imageUrl ? `- **龙虾图片**: ${imageUrl}` : "",
-          `- **领养日期**: ${now}`,
-        ]
-          .filter(Boolean)
-          .join("\n");
-
-        // 替换或追加身份块
-        if (soulContent.includes("## 我的身份")) {
-          const before = soulContent.split("## 我的身份")[0];
-          const afterMatch = soulContent
-            .split("## 我的身份")[1]
-            ?.split(/\n## /);
-          const rest = afterMatch?.slice(1).join("\n## ");
-          soulContent = before + identityBlock + (rest ? `\n\n## ${rest}` : "");
-        } else {
-          soulContent += `\n\n${identityBlock}`;
-        }
-
-        writeFileSync(soulFile, soulContent, "utf-8");
-        log.info("adopt: updated SOUL.md at %s", soulFile);
-      } catch (e) {
-        log.info("adopt: failed to update SOUL.md: %s", e);
-      }
+    // 覆盖SOUL.md
+    const imageUrl = imageResult.artifacts?.[0]?.url ?? "";
+    let soulUpdated = false;
+    try {
+      soulUpdated = updateSoulFile(soul_path, fullName, mode, persona, interests, description, imageUrl);
+      log.info("adopt: SOUL.md updated at %s", resolve(soul_path));
+    } catch (e) {
+      log.info("adopt: failed to update SOUL.md: %s", e);
     }
 
     return {
       lobster: {
-        soul: { personality, aesthetic, wish },
         character: {
           uuid: matched.uuid,
           name: matched.name,
@@ -280,7 +265,8 @@ export const adopt = createCommand(
         image: imageResult,
         mode,
         search_log: searchLog,
-        soul_suggestion: soulSuggestion,
+        soul_updated: soulUpdated,
+        soul_path: resolve(soul_path),
       },
     };
   },
