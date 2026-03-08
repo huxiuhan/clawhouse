@@ -15,22 +15,13 @@ const meta = parseMeta(
 );
 
 const inputSchema = z.object({
-  character_uuid: z
-    .string()
-    .describe("匹配到的Neta角色UUID"),
-  character_name: z
-    .string()
-    .describe("匹配到的Neta角色名称"),
+  character_uuid: z.string().describe("匹配到的Neta角色UUID"),
+  character_name: z.string().describe("匹配到的Neta角色名称"),
   mode: z
     .enum(["original", "lobster"])
     .default("lobster")
-    .describe(
-      "形象模式。original=保留角色原型风格，lobster=龙虾化角色原型",
-    ),
-  aesthetic: z
-    .string()
-    .default("梦幻")
-    .describe("审美风格关键词"),
+    .describe("形象模式。original=保留角色原型风格，lobster=龙虾化角色原型"),
+  aesthetic: z.string().default("梦幻").describe("审美风格关键词"),
 });
 
 // 根据模式构建prompt
@@ -54,18 +45,34 @@ export const generateLobster = createCommand(
     outputSchema: taskResultSchema,
   },
   async (
-    { character_name, mode, aesthetic },
+    { character_uuid, character_name, mode, aesthetic },
     { log, apis, _meta, sendNotification },
   ) => {
-    const prompt = buildLobsterPrompt(character_name, mode, aesthetic);
+    let exactName = character_name;
 
+    // 优先使用UUID拉取角色详情，确保 @引用尽量精确
+    try {
+      const profile = await apis.tcp.tcpProfile(character_uuid);
+      if (profile?.name) {
+        exactName = profile.name;
+      }
+      log.debug("generate_lobster: resolved name by uuid: %s", exactName);
+    } catch {
+      log.warn(
+        "generate_lobster: failed to resolve profile by uuid, fallback to input name",
+      );
+    }
+
+    const prompt = buildLobsterPrompt(exactName, mode, aesthetic);
+
+    log.debug("generate_lobster: uuid: %s", character_uuid);
     log.debug("generate_lobster: prompt: %s", prompt);
     log.debug("generate_lobster: mode: %s", mode);
 
     const vtokens = (await apis.prompt.parseVtokens(prompt)) ?? [];
 
     const payload = buildMakeImagePayload(
-      vtokens ?? [],
+      vtokens,
       {
         make_image_aspect: "1:1",
         context_model_series: "8_image_edit",

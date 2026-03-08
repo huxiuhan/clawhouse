@@ -1,7 +1,1 @@
-export function safeParseJson<T>(json: string): T | null {
-  try {
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
+export * from "neta-skills/skills/neta/bin/utils/json.js";

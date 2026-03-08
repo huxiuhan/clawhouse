@@ -24,16 +24,50 @@ const PERSONALITY_TO_FAMOUS: Record<string, string[]> = {
 };
 
 const AESTHETIC_MAP: Record<string, string> = {
-  梦幻: "梦幻", 酷炫: "酷", 华丽: "华丽", 清新: "清新", 独特: "个性",
+  梦幻: "梦幻",
+  酷炫: "酷",
+  华丽: "华丽",
+  清新: "清新",
+  独特: "个性",
+};
+
+const WISH_TO_IMAGE_STYLE: Record<string, string> = {
+  神秘: "探索未知深海, 神秘氛围",
+  文艺: "艺术感构图, 诗意氛围",
+  战斗: "战斗姿态, 强烈动势",
+  治愈: "温暖治愈光感, 安心氛围",
+  霸气: "王者气场, 史诗氛围",
 };
 
 const inputSchema = z.object({
-  name: z.string().optional().describe("直接指定角色名（最高优先级，如：关羽、孙悟空）"),
-  personality: z.string().default("温柔").describe("龙虾的性格。可选: 温柔, 活泼, 高冷, 暗黑, 可爱"),
-  aesthetic: z.string().default("梦幻").describe("审美风格。可选: 梦幻, 酷炫, 华丽, 清新, 独特"),
-  wish: z.string().default("治愈").describe("愿望。可选: 神秘, 文艺, 战斗, 治愈, 霸气"),
-  mode: z.enum(["original", "lobster"]).default("lobster").describe("形象模式。original=保留原型, lobster=龙虾化"),
-  soul_path: z.string().default(process.env["SOUL_PATH"] ?? "SOUL.md").describe("SOUL.md文件路径。默认: SOUL.md 或环境变量 SOUL_PATH"),
+  name: z
+    .string()
+    .optional()
+    .describe("直接指定角色名（最高优先级，如：关羽、孙悟空）"),
+  soul_description: z
+    .string()
+    .optional()
+    .describe("用户Soul文件中的性格描述（第2层搜索）"),
+  personality: z
+    .string()
+    .default("温柔")
+    .describe("龙虾的性格。可选: 温柔, 活泼, 高冷, 暗黑, 可爱"),
+  aesthetic: z
+    .string()
+    .default("梦幻")
+    .describe("审美风格。可选: 梦幻, 酷炫, 华丽, 清新, 独特"),
+  wish: z
+    .string()
+    .default("治愈")
+    .describe("愿望。可选: 神秘, 文艺, 战斗, 治愈, 霸气"),
+  mode: z
+    .enum(["original", "lobster"])
+    .default("lobster")
+    .describe("形象模式。original=保留原型, lobster=龙虾化"),
+  soul_path: z
+    .string()
+    .default(process.env["SOUL_PATH"] ?? "SOUL.md")
+    .describe("SOUL.md文件路径。默认: SOUL.md 或环境变量 SOUL_PATH"),
 });
 
 const outputSchema = z.object({
@@ -63,11 +97,15 @@ function buildLobsterPrompt(
   fullName: string,
   mode: "original" | "lobster",
   aesthetic: string,
+  wish: string,
 ): string {
+  const wishStyle = WISH_TO_IMAGE_STYLE[wish] ?? `${wish}主题`;
+
   if (mode === "original") {
-    return `@${fullName}, 海底珊瑚宫殿背景, 水下光影, ${aesthetic}风格, 高质量插画`;
+    return `@${fullName}, 海底珊瑚宫殿背景, 水下光影, ${aesthetic}风格, ${wishStyle}, 高质量插画`;
   }
-  return `@${fullName}, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, ${aesthetic}风格, 高质量插画`;
+
+  return `@${fullName}, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, ${aesthetic}风格, ${wishStyle}, 高质量插画`;
 }
 
 function updateSoulFile(
@@ -90,7 +128,7 @@ function updateSoulFile(
   }
 
   const identityBlock = [
-    `## 我的身份\n`,
+    "## 我的身份\n",
     `- **名字**: ${fullName}${mode === "lobster" ? "（龙虾化）" : ""}`,
     persona ? `- **性格**: ${persona}` : "",
     interests ? `- **爱好**: ${interests}` : "",
@@ -122,7 +160,10 @@ export const adopt = createCommand(
     inputSchema,
     outputSchema,
   },
-  async ({ name, personality, aesthetic, mode, soul_path }, { log, apis, _meta, sendNotification }) => {
+  async (
+    { name, soul_description, personality, aesthetic, wish, mode, soul_path },
+    { log, apis, _meta, sendNotification },
+  ) => {
     const searchLog: string[] = [];
 
     const searchCharacter = async (keyword: string, source: string) => {
@@ -146,6 +187,15 @@ export const adopt = createCommand(
       if (list.length > 0) {
         matched = list[0];
         matchSource = `直接输入: ${name}`;
+      }
+    }
+
+    // 第2层：用户Soul描述
+    if (!matched && soul_description) {
+      const list = await searchCharacter(soul_description, "[2] Soul描述搜索");
+      if (list.length > 0) {
+        matched = list[0];
+        matchSource = `Soul描述: ${soul_description}`;
       }
     }
 
@@ -196,12 +246,12 @@ export const adopt = createCommand(
 
     // 生成龙虾形象
     const aestheticKeyword = AESTHETIC_MAP[aesthetic] ?? aesthetic;
-    const prompt = buildLobsterPrompt(fullName, mode, aestheticKeyword);
+    const prompt = buildLobsterPrompt(fullName, mode, aestheticKeyword, wish);
     log.info("adopt: prompt: %s", prompt);
 
     const vtokens = (await apis.prompt.parseVtokens(prompt)) ?? [];
     const payload = buildMakeImagePayload(
-      vtokens ?? [],
+      vtokens,
       {
         make_image_aspect: "1:1",
         context_model_series: "8_image_edit",
@@ -226,12 +276,18 @@ export const adopt = createCommand(
           method: "notifications/progress",
           params: {
             progressToken: _meta?.progressToken ?? task_uuid,
-            progress: Math.min(Number(((Date.now() - startTime) / 60000).toFixed(2)), 1),
+            progress: Math.min(
+              Number(((Date.now() - startTime) / 60000).toFixed(2)),
+              1,
+            ),
             total: 1,
             message: `${task_uuid} - ${pollResult.task_status}`,
           },
         });
-        return pollResult.task_status !== "PENDING" && pollResult.task_status !== "MODERATION";
+        return (
+          pollResult.task_status !== "PENDING" &&
+          pollResult.task_status !== "MODERATION"
+        );
       },
       2000,
       timeout,
@@ -245,7 +301,15 @@ export const adopt = createCommand(
     const imageUrl = imageResult.artifacts?.[0]?.url ?? "";
     let soulUpdated = false;
     try {
-      soulUpdated = updateSoulFile(soul_path, fullName, mode, persona, interests, description, imageUrl);
+      soulUpdated = updateSoulFile(
+        soul_path,
+        fullName,
+        mode,
+        persona,
+        interests,
+        description,
+        imageUrl,
+      );
       log.info("adopt: SOUL.md updated at %s", resolve(soul_path));
     } catch (e) {
       log.info("adopt: failed to update SOUL.md: %s", e);

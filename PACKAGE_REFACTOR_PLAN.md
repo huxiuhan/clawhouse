@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "@commander-js/extra-typings": "^14.0.0",
-    "@neta/skills-neta": "workspace:*",
+    "neta-skills (monorepo workspace package)": "workspace:*",
     "axios": "^1.7.9",
     "commander": "^14.0.0",
     "dotenv": "^16.4.7",
@@ -173,8 +173,8 @@ export class TcpApi {
 **改进后**:
 ```typescript
 // src/apis/index.ts
-export { TcpApi } from '@neta/skills-neta/apis';
-export type { Apis } from '@neta/skills-neta/apis';
+export { TcpApi } from 'neta-skills/apis';
+export type { Apis } from 'neta-skills/apis';
 ```
 
 ## 时间估计

@@ -15,16 +15,28 @@
     ↓
 用@角色全名引用生成龙虾形象
     ↓
-完成领养 + Soul建议
+完成领养 + 自动覆盖SOUL.md
+    ↓
+读取SOUL.md获取当前角色
+    ↓
+从neta-skills发现新玩法
+    ↓
+用角色名 + 玩法模板生成旅行图片
+    ↓
+返回旅行图片 + 玩法链接
 ```
+
+详见 [FLOW.md](./FLOW.md) 完整流程文档。
 
 ## 依赖
 
-本项目依赖 [neta-skills](https://github.com/talesofai/neta-skills) 的 API 封装和工具函数：
+本项目依赖 [neta-skills](https://github.com/talesofai/neta-skills) 的能力与实现思路：
 
-- `apis/` — 复用 `@neta/skills-neta` 的 Neta API 客户端（角色搜索、图片生成、prompt解析等）
-- `utils/` — 复用 `@neta/skills-neta` 的工具函数（轮询、错误处理、元数据解析等）
-- `commands/factory.ts` + `load.ts` + `schema.ts` — 复用 neta-skills 的命令框架
+- `apis/` — 参考 neta-skills 的 Neta API 封装并在本仓库内实现（角色搜索、图片生成、prompt解析等）
+- `utils/` — 参考 neta-skills 的工具函数并在本仓库内实现（轮询、错误处理、元数据解析等）
+- `commands/factory.ts` + `load.ts` + `schema.ts` — 参考 neta-skills 命令框架并在本仓库内实现
+
+> 当前项目**不依赖** `@neta/skills-neta` npm 包（该包不存在）。
 
 项目结构完全兼容 neta-skills 标准 skill 仓库规范，可作为独立 skill 安装使用。
 
@@ -57,6 +69,9 @@ npm start adopt -- --name "哪吒" --mode "original"
 
 ```bash
 npm start adopt -- --personality "高冷" --aesthetic "华丽" --wish "战斗" --mode "lobster"
+
+# 或显式提供Soul描述（4层搜索中的第2层）
+npm start adopt -- --soul_description "忠义勇猛" --personality "高冷" --mode "lobster"
 ```
 
 ### 分步操作
@@ -68,6 +83,58 @@ npm start match_soul -- --name "关羽" --personality "高冷"
 # 第二步：生成形象
 npm start generate_lobster -- --character_uuid "xxx" --character_name "关羽" --mode "lobster"
 ```
+
+## 🌍 旅游探险（travel）
+
+领养完成后，可以带着你的角色去旅游！
+
+### 基本用法
+
+```bash
+# 指定玩法UUID旅游
+npm start travel -- --collection_uuid "c2bff06a-7b29-4b47-ae90-ae9f5d59754f"
+
+# 自动推荐玩法旅游
+npm start travel --
+
+# 指定SOUL.md路径
+npm start travel -- --soul_path "/path/to/SOUL.md"
+```
+
+### 旅游流程
+
+1. **读取SOUL.md** → 获取当前角色名（如：关羽#36d0）
+2. **发现玩法** → 从neta-skills推荐或指定玩法UUID
+3. **获取玩法详情** → 提取玩法名称、描述、prompt模板
+4. **生成旅行图片** → 用角色名 + 玩法模板生成
+5. **返回结果** → 旅行图片URL + 玩法链接
+
+### 示例：关羽#36d0的梦幻旅行
+
+```bash
+npm start travel -- --collection_uuid "c2bff06a-7b29-4b47-ae90-ae9f5d59754f"
+```
+
+**输出**：
+```json
+{
+  "travel": {
+    "character_name": "关羽#36d0",
+    "destination": {
+      "name": "旋转的梦啊，永不醒",
+      "url": "https://app.nieta.art/collection/interaction?uuid=c2bff06a-..."
+    },
+    "image": {
+      "url": "https://oss.talesofai.cn/picture/25b6b25a-..."
+    }
+  }
+}
+```
+
+**旅行照片** 👇
+![关羽#36d0梦幻旅行](https://oss.talesofai.cn/picture/25b6b25a-b7b4-4008-a8cb-14d9771c416b.webp)
+
+> 武圣关云长踏入了旋转的梦境，青龙偃月刀在梦幻光影中闪烁。
 
 ## 🔍 4层搜索优先级
 
