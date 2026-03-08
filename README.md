@@ -84,7 +84,7 @@ npm start generate_lobster -- --character_uuid "xxx" --character_name "关羽" -
 
 以下示例均使用 neta-skills 实际生成，完整步骤如下：
 
-### 例子1：敖丙保留原型 🌊👤
+### 例子1：敖丙龙虾化 🌊🦞
 
 **Step 1** — 搜索角色：
 ```bash
@@ -92,20 +92,20 @@ npm start match_soul -- --name "敖丙"
 # 找到: 敖丙 (fe27a0b6), 敖丙#ed49 (12ec82d8), 敖丙#d442 (279c1636)...
 ```
 
-**Step 2** — 用 `original` 模式，保留原型 + 海底场景：
+**Step 2** — 用 `lobster` 模式，龙虾化 + 海底场景：
 ```
-@敖丙, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
+@敖丙, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
 ```
 
 **生成结果**：
 
-![敖丙保留原型](https://oss.talesofai.cn/picture/872e2baf-a192-405f-b804-d99a7eeb287f.webp)
+![敖丙龙虾化](https://oss.talesofai.cn/picture/d240ecec-d164-4c54-9eb3-7f1c98e9ba18.webp)
 
-> 龙王之子在海底宫殿中，依然优雅从容。
+> 龙王之子变成了虾王之子。
 
 ---
 
-### 例子2：悟空保留原型 🌊👤
+### 例子2：悟空龙虾化 🌊🦞
 
 **Step 1** — 搜索角色：
 ```bash
@@ -113,14 +113,14 @@ npm start match_soul -- --name "悟空"
 # 找到: 悟空 (25ec3477)...
 ```
 
-**Step 2** — 用 `original` 模式，保留原型 + 海底场景：
+**Step 2** — 用 `lobster` 模式，龙虾化 + 海底场景：
 ```
-@悟空, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
+@悟空, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
 ```
 
 **生成结果**：
 
-![悟空保留原型](https://oss.talesofai.cn/picture/f0fe33cb-759a-490a-bc45-5f6d227cfbcb.webp)
+![悟空龙虾化](https://oss.talesofai.cn/picture/664e0592-1e5e-4d49-b0a7-6d99bf73de74.webp)
 
 > 齐天大圣闹完天宫，又来闹龙宫了。
 
