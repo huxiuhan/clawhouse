@@ -67,7 +67,7 @@ export const matchSoul = createCommand(
     inputSchema,
     outputSchema,
   },
-  async ({ name, soul_description, personality, count }, { log, apis }) => {
+  async ({ name, soul_description, personality, count }, { apis }) => {
     const candidates: Array<{
       uuid: string;
       name: string;

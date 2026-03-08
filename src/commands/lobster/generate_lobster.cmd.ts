@@ -54,7 +54,7 @@ export const generateLobster = createCommand(
     outputSchema: taskResultSchema,
   },
   async (
-    { character_uuid, character_name, mode, aesthetic },
+    { character_name, mode, aesthetic },
     { log, apis, _meta, sendNotification },
   ) => {
     const prompt = buildLobsterPrompt(character_name, mode, aesthetic);
