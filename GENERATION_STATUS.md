@@ -1,83 +1,21 @@
-# 龙虾形象生成任务状态
+# 生成任务追踪（断点续跑）
 
-## 任务目标
-生成三个角色的original模式图片作为README示例
+## 使用规则（OpenClaw 必须执行）
 
-## 角色信息
+1. 任何 `adopt` / `travel` / `house` 命令只要返回了 `task_uuid`，必须立刻写入本文件。
+2. 即使当前状态是 `PENDING` / `TIMEOUT` / `FAILURE`，也要记录，不能等成功后再补。
+3. 后续回查到成功时，补上 `最新状态` 和 `图片URL`，并同步到 `README` 案例。
+4. 一条任务至少保留：`日期时间`、`命令`、`task_uuid`、`初始状态`、`最新状态`、`图片URL`、`备注`。
 
-### 1. 敖丙 - original模式
-- **UUID**: fe27a0b6-4d90-4b87-ae3d-de83db55fce4
-- **模式**: original（保留原型）
-- **审美**: 梦幻
-- **Prompt**: `@敖丙, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画`
-- **状态**: 生成中...
+## 任务记录表
 
-### 2. 悟空 - original模式
-- **UUID**: 25ec3477-7d56-4200-8761-9b53ab409fe5
-- **模式**: original（保留原型）
-- **审美**: 梦幻
-- **Prompt**: `@悟空, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画`
-- **状态**: 待生成
+| 日期时间 | 命令 | task_uuid | 初始状态 | 最新状态 | 图片URL | 备注 |
+|---|---|---|---|---|---|---|
+| 2026-03-08 22:17 | `npm start -- travel` | `a827727f-f7dc-4ad5-b536-1082b98da5a9` | `PENDING` | `SUCCESS` | `https://oss.talesofai.cn/picture/a827727f-f7dc-4ad5-b536-1082b98da5a9.webp` | 自动发现运动报告玩法 |
+| 2026-03-08 23:xx | `npm start -- house --map_style stardew --room_style 温暖` | `0086e608-f654-409f-866e-73a8e2f6e939` | `PENDING` | `SUCCESS` | `https://oss.talesofai.cn/picture/0086e608-f654-409f-866e-73a8e2f6e939.webp` | 最新版像素小屋地图实测 |
 
-### 3. 关羽#36d0 - original模式
-- **UUID**: 303773df-17ec-41b9-8067-9d9c200507de
-- **模式**: original（保留原型）
-- **审美**: 梦幻
-- **Prompt**: `@关羽#36d0, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画`
-- **状态**: 待生成
-
-## 执行命令
-
-```bash
-# 敖丙
-npm start -- generate_lobster --character_uuid "fe27a0b6-4d90-4b87-ae3d-de83db55fce4" --character_name "敖丙" --mode "original" --aesthetic "梦幻"
-
-# 悟空
-npm start -- generate_lobster --character_uuid "25ec3477-7d56-4200-8761-9b53ab409fe5" --character_name "悟空" --mode "original" --aesthetic "梦幻"
-
-# 关羽#36d0
-npm start -- generate_lobster --character_uuid "303773df-17ec-41b9-8067-9d9c200507de" --character_name "关羽#36d0" --mode "original" --aesthetic "梦幻"
-```
-
-## README更新位置
-
-在README.md的"🎮 示例效果"部分添加三个新示例，格式参考现有的"例子1：关羽龙虾化"、"例子2：敖丙龙虾化"、"例子3：哪吒保留原型"。
-
-### 新增示例模板
+## 追加模板（复制这一段）
 
 ```markdown
-### 例子4：敖丙保留原型 🌊👤
-
-**生成结果**：
-
-![敖丙保留原型](IMAGE_URL_HERE)
-
-> 龙王之子在海底宫殿中保持优雅。
-
----
-
-### 例子5：悟空保留原型 🌊👤
-
-**生成结果**：
-
-![悟空保留原型](IMAGE_URL_HERE)
-
-> 齐天大圣在海底也能翻江倒海。
-
----
-
-### 例子6：关羽#36d0保留原型 ⚔️👤
-
-**生成结果**：
-
-![关羽#36d0保留原型](IMAGE_URL_HERE)
-
-> 美髯公在海底依然忠义刚正。
+| YYYY-MM-DD HH:mm | `npm start -- <command> ...` | `<task_uuid>` | `PENDING` | `PENDING` |  | <说明> |
 ```
-
-## 注意事项
-
-- 图片生成API有并发限制（同时最多生成数量有上限）
-- 每个图片生成需要轮询等待��通常需要1-5分钟
-- 生成完成后会返回artifacts数组，包含图片URL
-- 需要将返回的图片URL替换到README中的IMAGE_URL_HERE位置

@@ -58,7 +58,8 @@
 生成龙虾形象
   ├─ 解析prompt中的@角色名引用
   ├─ 调用neta-skills的make_image API
-  └─ 轮询等待图片生成完成
+  ├─ 轮询等待图片生成完成
+  └─ 立即记录task_uuid到GENERATION_STATUS.md
   ↓
 自动覆盖SOUL.md
   ├─ 读取SOUL.md
@@ -143,7 +144,8 @@ npm start adopt -- --name "关羽#36d0" --mode "lobster"
 生成旅行图片
   ├─ 解析prompt中的@角色名引用
   ├─ 调用neta-skills的make_image API
-  └─ 轮询等待图片生成完成
+  ├─ 轮询等待图片生成完成
+  └─ 立即记录task_uuid到GENERATION_STATUS.md
   ↓
 返回旅行结果
   ├─ character_name: 关羽#36d0
@@ -227,6 +229,13 @@ npm start -- travel
 - adopt时获取角色的full_name（如"关羽#36d0"）
 - travel时用full_name生成prompt
 - 好处：避免歧义、确保生成的图片准确
+
+### 5. 长任务必须可追踪
+
+- 图片生成可能耗时很久，可能出现超时/中断
+- 只要拿到task_uuid，必须立即写入GENERATION_STATUS.md
+- 后续再补任务状态和最终图片URL
+- 好处：任务不断档，过段时间也能继续推进
 
 ## 完整使用流程
 

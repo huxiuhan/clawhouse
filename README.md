@@ -17,6 +17,7 @@
   <a href="#亮点案例库实测">亮点案例</a> ·
   <a href="#30-秒跑通最短路径">30 秒跑通</a> ·
   <a href="#命令地图">命令地图</a> ·
+  <a href="#长任务追踪openclaw-必读">长任务追踪</a> ·
   <a href="#快速开始">快速开始</a> ·
   <a href="#常见问题">常见问题</a>
 </p>
@@ -231,6 +232,20 @@ npm run dev -- travel --help
 - `npm start travel` 在无参数时可用。
 - 只要要传 `--xxx` 参数，推荐统一写成 `npm start -- <command> --xxx ...`，避免参数被 npm 吃掉。
 
+## 长任务追踪（OpenClaw 必读）
+
+- 图片任务可能耗时较长（常见 1-10 分钟，极端情况下会超时）。
+- 只要命令返回了 `task_uuid`，必须立刻记录到 `GENERATION_STATUS.md`，不要等任务完成再记。
+- 即便当前状态是 `PENDING` / `TIMEOUT` / `FAILURE`，也必须记录，后续才能继续跟踪。
+- 推荐最少记录字段：`日期时间`、`命令`、`task_uuid`、`当前状态`、`预期产物`、`图片URL(若已生成)`。
+
+建议流程：
+
+1. 执行命令，拿到 `task_uuid`。
+2. 立刻追加到 `GENERATION_STATUS.md`。
+3. 过段时间回看并补齐状态与 `artifacts[].url`。
+4. 成功后把最终图链接同步到 `README` 案例区。
+
 ## 你可以做什么
 
 1. 指定角色或人格线索，匹配 Neta 角色。
@@ -319,9 +334,9 @@ npm run dev -- --help
 
 1. 跑 `npm run dev -- --help`，确认命令装载无误。
 2. 跑 `match_soul`，检查角色检索是否工作。
-3. 跑 `adopt`，验证图像生成 + `SOUL.md` 写入。
-4. 跑 `travel`，验证自动发现 + 玩法读取 + 旅行图生成。
-5. 跑 `house`，验证扩展玩法链路。
+3. 跑 `adopt`，验证图像生成 + `SOUL.md` 写入，并记录 `task_uuid` 到 `GENERATION_STATUS.md`。
+4. 跑 `travel`，验证自动发现 + 玩法读取 + 旅行图生成，并记录 `task_uuid`。
+5. 跑 `house`，验证扩展玩法链路，并记录 `task_uuid`。
 
 这样可以快速判断：账号权限、网络、API、命令参数、文件写入是否都正常。
 
@@ -363,6 +378,7 @@ clawhouse/
 ## 相关文档
 
 - 完整流程说明：`FLOW.md`
+- 长任务追踪日志：`GENERATION_STATUS.md`
 - 介绍用画图 prompt：`infographics.md`
 
 ## License
