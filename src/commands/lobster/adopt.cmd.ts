@@ -1,9 +1,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import z from "zod";
-import { buildMakeImagePayload } from "../../apis/types.ts";
 import { parseMeta } from "../../utils/parse_meta.ts";
-import { polling } from "../../utils/polling.ts";
+import { generateImage } from "../../utils/image-generation.ts";
 import { createCommand } from "../factory.ts";
 
 const meta = parseMeta(
@@ -250,52 +249,20 @@ export const adopt = createCommand(
     log.info("adopt: prompt: %s", prompt);
 
     const vtokens = (await apis.prompt.parseVtokens(prompt)) ?? [];
-    const payload = buildMakeImagePayload(
-      vtokens,
+    const imageResult = await generateImage(
+      apis,
       {
-        make_image_aspect: "1:1",
-        context_model_series: "8_image_edit",
-        entrance_uuid: _meta?.entrance_uuid,
-        toolcall_uuid: _meta?.toolcall_uuid,
+        vtokens,
+        aspect: "1:1",
+        entranceUuid: _meta?.entrance_uuid,
+        toolcallUuid: _meta?.toolcall_uuid,
+        collectionUuid: _meta?.inherit?.collection_uuid,
+        pictureUuid: _meta?.inherit?.picture_uuid,
       },
-      {
-        collection_uuid: _meta?.inherit?.collection_uuid,
-        picture_uuid: _meta?.inherit?.picture_uuid,
-      },
+      _meta,
+      sendNotification,
+      log,
     );
-
-    const task_uuid = await apis.artifact.makeImage(payload);
-    log.info("adopt: image task: %s", task_uuid);
-
-    const startTime = Date.now();
-    const timeout = 60 * 1000 * 10;
-    const res = await polling(
-      () => apis.artifact.task(task_uuid),
-      async (pollResult) => {
-        await sendNotification({
-          method: "notifications/progress",
-          params: {
-            progressToken: _meta?.progressToken ?? task_uuid,
-            progress: Math.min(
-              Number(((Date.now() - startTime) / 60000).toFixed(2)),
-              1,
-            ),
-            total: 1,
-            message: `${task_uuid} - ${pollResult.task_status}`,
-          },
-        });
-        return (
-          pollResult.task_status !== "PENDING" &&
-          pollResult.task_status !== "MODERATION"
-        );
-      },
-      2000,
-      timeout,
-    );
-
-    const imageResult = res.isTimeout
-      ? { task_uuid, task_status: "TIMEOUT", artifacts: [] }
-      : res.result;
 
     // 覆盖SOUL.md
     const imageUrl = imageResult.artifacts?.[0]?.url ?? "";

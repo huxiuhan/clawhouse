@@ -1,9 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import z from "zod";
-import { buildMakeImagePayload } from "../../apis/types.ts";
 import { parseMeta } from "../../utils/parse_meta.ts";
-import { polling } from "../../utils/polling.ts";
+import { generateImage } from "../../utils/image-generation.ts";
 import { createCommand } from "../factory.ts";
 
 const meta = parseMeta(
@@ -34,7 +33,7 @@ const outputSchema = z.object({
   travel: z.object({
     character_name: z.string(),
     destination: z.object({
-      uuid: z.string(),
+      uuid: z.string().optional(),
       name: z.string(),
       description: z.string(),
       url: z.string(),
@@ -90,7 +89,7 @@ export const travel = createCommand(
     let coreInput = "";
 
     if (!collectionUuid) {
-      // 自动推荐：从suggest_content获取
+      // 自动推荐：从feeds获取
       log.info("travel: no destination specified, discovering...");
       const feedResult = await apis.feeds.interactiveList({
         page_index: 0,
@@ -113,8 +112,12 @@ export const travel = createCommand(
     }
 
     // 3. 读取玩法详情
+    if (!collectionUuid) {
+      throw new Error("无法获取玩法UUID");
+    }
+    
     log.info("travel: reading collection %s", collectionUuid);
-    const details = await apis.collection.collectionDetails([collectionUuid!]);
+    const details = await apis.collection.collectionDetails([collectionUuid]);
     const collectionDetail = details?.[0] as any;
 
     if (collectionDetail) {
@@ -144,58 +147,26 @@ export const travel = createCommand(
 
     // 5. 生成旅行图片
     const vtokens = (await apis.prompt.parseVtokens(prompt)) ?? [];
-    const payload = buildMakeImagePayload(
-      vtokens ?? [],
+    const imageResult = await generateImage(
+      apis,
       {
-        make_image_aspect: aspect,
-        context_model_series: "8_image_edit",
-        entrance_uuid: _meta?.entrance_uuid,
-        toolcall_uuid: _meta?.toolcall_uuid,
+        vtokens,
+        aspect,
+        entranceUuid: _meta?.entrance_uuid,
+        toolcallUuid: _meta?.toolcall_uuid,
+        collectionUuid: _meta?.inherit?.collection_uuid,
+        pictureUuid: _meta?.inherit?.picture_uuid,
       },
-      {
-        collection_uuid: _meta?.inherit?.collection_uuid,
-        picture_uuid: _meta?.inherit?.picture_uuid,
-      },
+      _meta,
+      sendNotification,
+      log,
     );
-
-    const task_uuid = await apis.artifact.makeImage(payload);
-    log.info("travel: image task: %s", task_uuid);
-
-    const startTime = Date.now();
-    const timeout = 60 * 1000 * 10;
-    const res = await polling(
-      () => apis.artifact.task(task_uuid),
-      async (pollResult) => {
-        await sendNotification({
-          method: "notifications/progress",
-          params: {
-            progressToken: _meta?.progressToken ?? task_uuid,
-            progress: Math.min(
-              Number(((Date.now() - startTime) / 60000).toFixed(2)),
-              1,
-            ),
-            total: 1,
-            message: `${task_uuid} - ${pollResult.task_status}`,
-          },
-        });
-        return (
-          pollResult.task_status !== "PENDING" &&
-          pollResult.task_status !== "MODERATION"
-        );
-      },
-      2000,
-      timeout,
-    );
-
-    const imageResult = res.isTimeout
-      ? { task_uuid, task_status: "TIMEOUT", artifacts: [] }
-      : res.result;
 
     return {
       travel: {
         character_name: characterName,
         destination: {
-          uuid: collectionUuid!,
+          uuid: collectionUuid || "",
           name: collectionName,
           description: collectionDesc,
           url: collectionUrl,
