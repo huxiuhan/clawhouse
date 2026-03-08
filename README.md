@@ -1,121 +1,207 @@
-# 🦞 ClawHouse - 龙虾领养馆
+# ClawHouse
 
-基于 [neta-skills](https://github.com/talesofai/neta-skills) 的龙虾领养体验。用户指定角色或回答 Soul 问题，系统从 Neta 角色库中匹配灵魂原型，生成龙虾形象。
+龙虾领养馆。  
+把 Neta 角色当作灵魂原型，完成「领养 -> 旅行 -> 扩展玩法」的完整闭环。
 
-## 核心流程
+- 适合人类用户：直接跑 CLI 命令就能体验。
+- 适合 OpenClaw：命令清晰、输入输出稳定、可逐步自动化。
 
+## 你可以做什么
+
+1. 指定角色或人格线索，匹配 Neta 角色。
+2. 生成角色的龙虾化形象或保留原型形象。
+3. 自动写入 `SOUL.md`，保存当前身份。
+4. 基于当前身份自动发现玩法，读取玩法模板后生成旅行图。
+5. 可选：为角色生成像素小屋（角色 + 房间 + 物件）。
+
+## 玩法主线（推荐）
+
+```text
+输入角色线索
+  -> match_soul / adopt
+  -> 生成角色图像
+  -> 覆盖 SOUL.md（当前身份）
+  -> travel 自动发现玩法
+  -> read_collection 读取玩法详情与模板
+  -> 生成旅行图
 ```
-用户输入角色名/Soul描述
-    ↓
-4层优先级搜索匹配Neta角色
-    ↓
-获取角色完整设定和精确全名
-    ↓
-选择形象模式（龙虾化/保留原型）
-    ↓
-用@角色全名引用生成龙虾形象
-    ↓
-完成领养 + 自动覆盖SOUL.md
-    ↓
-读取SOUL.md获取当前角色
-    ↓
-从neta-skills发现新玩法
-    ↓
-用角色名 + 玩法模板生成旅行图片
-    ↓
-返回旅行图片 + 玩法链接
+
+补充分支：
+
+```text
+已有角色设定
+  -> pixel_house
+  -> 生成像素角色 + 小屋 + 物件
 ```
 
-详见 [FLOW.md](./FLOW.md) 完整流程文档。
+## 快速开始
 
-## 依赖
-
-本项目依赖 [neta-skills](https://github.com/talesofai/neta-skills) 的能力与实现思路：
-
-- `apis/` — 参考 neta-skills 的 Neta API 封装并在本仓库内实现（角色搜索、图片生成、prompt解析等）
-- `utils/` — 参考 neta-skills 的工具函数并在本仓库内实现（轮询、错误处理、元数据解析等）
-- `commands/factory.ts` + `load.ts` + `schema.ts` — 参考 neta-skills 命令框架并在本仓库内实现
-
-> 当前项目**不依赖** `@neta/skills-neta` npm 包（该包不存在）。
-
-项目结构完全兼容 neta-skills 标准 skill 仓库规范，可作为独立 skill 安装使用。
-
-## 安装
+### 1) 安装
 
 ```bash
 git clone git@github.com:huxiuhan/clawhouse.git
 cd clawhouse
 npm install
 cp .env.example .env
-# 编辑 .env 填入 NETA_TOKEN
 ```
 
-## 使用
+### 2) 配置
 
-### 直接指定角色领养（推荐）
+编辑 `.env`：
 
 ```bash
-# 关羽变龙虾
+NETA_TOKEN=your_neta_token_here
+NETA_API_BASE_URL=https://api.talesofai.cn
+```
+
+### 3) 验证 CLI 可用
+
+```bash
+npm run dev -- --help
+```
+
+## 30 秒跑通（最短路径）
+
+### 第一步：领养
+
+```bash
 npm start adopt -- --name "关羽" --mode "lobster"
+```
 
-# 敖丙变龙虾
+这一步会：
+
+1. 搜索角色并匹配。
+2. 生成形象图。
+3. 自动覆盖当前目录的 `SOUL.md`。
+
+### 第二步：旅行
+
+```bash
+npm start travel --
+```
+
+这一步会：
+
+1. 从 `SOUL.md` 读取当前角色。
+2. 自动发现一个玩法。
+3. 读取玩法详情（`read_collection` 语义流程）。
+4. 用玩法模板 + 角色生成旅行图。
+
+## 命令地图
+
+| 命令 | 用途 | 关键输入 | 关键输出 |
+|---|---|---|---|
+| `adopt` | 一键领养（匹配+生成+写SOUL） | `name` / `personality` / `mode` | 角色信息、图片任务、`soul_updated` |
+| `match_soul` | 只做角色匹配 | `name` / `soul_description` / `personality` | `matched_characters` |
+| `generate_lobster` | 只做形象生成 | `character_uuid` / `character_name` / `mode` | 图片任务结果 |
+| `travel` | 旅行图生成 | `collection_uuid`(可选) / `soul_path` | 目的地信息 + 旅行图 |
+| `pixel_house` | 像素小屋玩法 | `character_name` / `character_description` | 多张像素图 artifacts |
+
+查看任一命令参数：
+
+```bash
+npm run dev -- <command> --help
+```
+
+示例：
+
+```bash
+npm run dev -- travel --help
+```
+
+## 核心机制
+
+### 1) 角色匹配的 4 层优先级
+
+找到即停：
+
+1. 用户直接输入角色名（`--name`）
+2. Soul 描述（`--soul_description`）
+3. 根据 personality 猜测知名角色
+4. personality 关键词兜底
+
+### 2) `SOUL.md` 是身份单一事实源
+
+- `adopt` 会覆盖 `## 我的身份`。
+- `travel` 只读取，不改写。
+- 如果没有 `SOUL.md` 身份，`travel` 会报错提醒先领养。
+
+### 3) 旅行流的发现与读取
+
+`travel` 在未指定 `collection_uuid` 时：
+
+1. 优先用 `suggest_content` 推荐流发现玩法。
+2. 若推荐流不可用，降级到互动 feed 发现。
+3. 对选中的玩法执行 `read_collection` 语义读取（当前实现使用 `interactiveItem`）。
+4. 取 `cta_info.launch_prompt.core_input`（或 choices）作为模板。
+5. 模板太长触发解析错误时，自动降级为通用 prompt，保证命令不直接失败。
+
+## 实测案例集（命令 + 关键结果 + 示例图）
+
+### 案例 1：敖丙龙虾化（`adopt + mode=lobster`）
+
+命令：
+
+```bash
 npm start adopt -- --name "敖丙" --mode "lobster"
-
-# 哪吒保留原型
-npm start adopt -- --name "哪吒" --mode "original"
 ```
 
-### 通过Soul问答匹配
+关键结果：
+
+1. 角色匹配到「敖丙」相关角色。
+2. 生成龙虾化形象（海底场景）。
+3. `SOUL.md` 会更新当前身份。
+
+示例图：
+
+![敖丙龙虾化](https://oss.talesofai.cn/picture/d240ecec-d164-4c54-9eb3-7f1c98e9ba18.webp)
+
+### 案例 2：悟空龙虾化（`adopt + mode=lobster`）
+
+命令：
 
 ```bash
-npm start adopt -- --personality "高冷" --aesthetic "华丽" --wish "战斗" --mode "lobster"
-
-# 或显式提供Soul描述（4层搜索中的第2层）
-npm start adopt -- --soul_description "忠义勇猛" --personality "高冷" --mode "lobster"
+npm start adopt -- --name "悟空" --mode "lobster"
 ```
 
-### 分步操作
+关键结果：
+
+1. 匹配到悟空角色原型。
+2. 按龙虾化模板生成角色图。
+3. 输出包含图片 `task_uuid` 与最终图片 URL。
+
+示例图：
+
+![悟空龙虾化](https://oss.talesofai.cn/picture/664e0592-1e5e-4d49-b0a7-6d99bf73de74.webp)
+
+### 案例 3：关羽保留原型（`adopt + mode=original`）
+
+命令：
 
 ```bash
-# 第一步：匹配灵魂
-npm start match_soul -- --name "关羽" --personality "高冷"
-
-# 第二步：生成形象
-npm start generate_lobster -- --character_uuid "xxx" --character_name "关羽" --mode "lobster"
+npm start adopt -- --name "关羽#36d0" --mode "original"
 ```
 
-## 🌍 旅游探险（travel）
+关键结果：
 
-领养完成后，可以带着你的角色去旅游！
+1. 保留角色原本形象，不做龙虾化。
+2. 添加海底场景并输出最终图片。
+3. `SOUL.md` 更新为当前领养身份。
 
-### 基本用法
+示例图：
+
+![关羽#36d0保留原型](https://oss.talesofai.cn/picture/8a6d584c-b211-4d65-a711-688aa19c8642.webp)
+
+### 案例 4：自动发现玩法旅行（`travel`）
+
+命令：
 
 ```bash
-# 指定玩法UUID旅游
-npm start travel -- --collection_uuid "c2bff06a-7b29-4b47-ae90-ae9f5d59754f"
-
-# 自动推荐玩法旅游
 npm start travel --
-
-# 指定SOUL.md路径
-npm start travel -- --soul_path "/path/to/SOUL.md"
 ```
 
-### 旅游流程
+关键结果（一次实测，2026-03-08）：
 
-1. **读取SOUL.md** → 获取当前角色名（如：关羽#36d0）
-2. **发现玩法** → 从neta-skills推荐或指定玩法UUID
-3. **获取玩法详情** → 提取玩法名称、描述、prompt模板
-4. **生成旅行图片** → 用角色名 + 玩法模板生成
-5. **返回结果** → 旅行图片URL + 玩法链接
-
-### 示例：自动发现新玩法（实测）
-
-```bash
-npm start travel --
-```
-
-**输出**：
 ```json
 {
   "travel": {
@@ -133,188 +219,61 @@ npm start travel --
 }
 ```
 
-**旅行照片** 👇
+示例图：
+
 ![关羽自动发现玩法旅行](https://oss.talesofai.cn/picture/db2393a5-5e24-43cb-8392-7b5134f8f90a.webp)
 
-> 自动发现新玩法后，系统会先读取玩法详情和模板，再生成对应旅行图。
+## 给 OpenClaw 的学习路径
 
-## 🔍 4层搜索优先级
+如果你让 OpenClaw 接手这个仓库，建议按下面顺序：
 
-角色匹配按以下优先级依次搜索，找到即停：
+1. 跑 `npm run dev -- --help`，确认命令装载无误。
+2. 跑 `match_soul`，检查角色检索是否工作。
+3. 跑 `adopt`，验证图像生成 + `SOUL.md` 写入。
+4. 跑 `travel --`，验证自动发现 + 玩法读取 + 旅行图生成。
+5. 跑 `pixel_house`，验证扩展玩法链路。
 
-| 优先级 | 搜索方式 | 示例 |
-|--------|---------|------|
-| **1. 直接输入** | 用户指定的角色名 | `--name "关羽"` → 搜索"关羽" |
-| **2. Soul描述** | 用户Soul文件中的性格描述 | Soul文件写"忠义勇猛" → 搜索"忠义勇猛" |
-| **3. 知名角色猜测** | 根据性格推断的知名角色 | 高冷 → 猜测"关羽""诸葛亮""赵云" |
-| **4. 关键词兜底** | 直接用性格关键词搜索 | 高冷 → 搜索"高冷" |
+这样可以快速判断：账号权限、网络、API、命令参数、文件写入是否都正常。
 
-## 🎮 示例效果
+## 常见问题
 
-以下示例均使用 neta-skills 实际生成，完整步骤如下：
+### 1) `Network Error`
 
-### 例子1：敖丙龙虾化 🌊🦞
+通常是网络不可达或 token 无效。优先检查：
 
-**Step 1** — 搜索角色：
-```bash
-npm start match_soul -- --name "敖丙"
-# 找到: 敖丙 (fe27a0b6), 敖丙#ed49 (12ec82d8), 敖丙#d442 (279c1636)...
-```
+1. `NETA_TOKEN` 是否正确。
+2. `NETA_API_BASE_URL` 是否可达。
+3. 当前执行环境是否允许外网访问。
 
-**Step 2** — 用 `lobster` 模式，龙虾化 + 海底场景：
-```
-@敖丙, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
-```
+### 2) `SOUL.md中没有找到角色信息`
 
-**生成结果**：
+先执行一次 `adopt`，或手动提供包含 `## 我的身份` 和 `- **名字**:` 的 `SOUL.md`。
 
-![敖丙龙虾化](https://oss.talesofai.cn/picture/d240ecec-d164-4c54-9eb3-7f1c98e9ba18.webp)
+### 3) `搜索关键字过多`
 
-> 龙王之子变成了虾王之子。
-
----
-
-### 例子2：悟空龙虾化 🌊🦞
-
-**Step 1** — 搜索角色：
-```bash
-npm start match_soul -- --name "悟空"
-# 找到: 悟空 (25ec3477)...
-```
-
-**Step 2** — 用 `lobster` 模式，龙虾化 + 海底场景：
-```
-@悟空, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
-```
-
-**生成结果**：
-
-![悟空龙虾化](https://oss.talesofai.cn/picture/664e0592-1e5e-4d49-b0a7-6d99bf73de74.webp)
-
-> 齐天大圣闹完天宫，又来闹龙宫了。
-
----
-
-### 例子3：关羽#36d0 保留原型 ⚔️👤
-
-**Step 1** — 搜索角色：
-```bash
-npm start match_soul -- --name "关羽"
-# 找到: 关羽 (a35e04da), 关羽#36d0 (303773df), 汉寿亭侯 关羽 (f23b1a19)...
-```
-
-**Step 2** — 用 `original` 模式，保留原型 + 海底场景：
-```
-@关羽#36d0, 海底珊瑚宫殿背景, 水下光影, 梦幻风格, 高质量插画
-```
-
-**生成结果**：
-
-![关羽#36d0保留原型](https://oss.talesofai.cn/picture/8a6d584c-b211-4d65-a711-688aa19c8642.webp)
-
-> 美髯公在海底，依然忠义刚正。
-
----
-
-## 🧠 Soul 自动覆盖
-
-领养完成后，系统会自动覆盖 `SOUL.md`，将你的身份更新为领养的角色：
-
-```markdown
-## 我的身份
-
-- **名字**: 关羽（龙虾化）
-- **性格**: 忠义刚正，骄傲自负，勇猛无畏，重情守诺
-- **爱好**: 研读《春秋》、练习武艺、忠义之道
-- **设定**: 东汉末年名将，以美髯和丹凤眼为标志性特征...
-- **龙虾图片**: https://oss.talesofai.cn/picture/xxx.webp
-- **领养日期**: 2026-03-08
-```
-
-默认写入当前目录的 `SOUL.md`，也可以通过参数或环境变量指定路径：
-
-```bash
-# 指定路径
-npm start adopt -- --name "关羽" --soul_path "/path/to/SOUL.md"
-
-# 或通过环境变量
-SOUL_PATH=/path/to/SOUL.md npm start adopt -- --name "关羽"
-```
-
-每次领养新角色会覆盖上一次的身份。
-
----
-
-## 形象模式
-
-### 🦞 lobster（龙虾化）
-用@角色全名 + 龙虾化描述生成。融合角色特征和龙虾元素。
-
-**Prompt模板**：
-```
-@角色全名, 龙虾拟人化, 身披龙虾甲壳铠甲, 头部有龙虾触须装饰, 手持龙虾钳形武器, 海底龙宫背景, {审美}风格, 高质量插画
-```
-
-### 👤 original（保留原型）
-用 `@角色名` 引用，保留角色原本形象，只添加海底场景。
-
-**Prompt模板**：
-```
-@角色名, 海底珊瑚宫殿背景, 水下光影, {审美}风格, 高质量插画
-```
-
-## Soul 问答选项
-
-### 性格 (personality)
-| 选项 | 描述 | 猜测的知名角色 |
-|------|------|---------------|
-| 温柔 | 温暖、治愈、善良 | 白龙马、貂蝉、织女 |
-| 活泼 | 开朗、调皮、热情 | 孙悟空、哪吒 |
-| 高冷 | 傲娇、独立、自信 | 关羽、诸葛亮、赵云 |
-| 暗黑 | 深邃、神秘、力量 | 曹操、吕布、白骨精 |
-| 可爱 | 萌系、甜美、天真 | 哪吒、小龙女、玉兔 |
-
-### 审美 (aesthetic)
-| 选项 | 描述 |
-|------|------|
-| 梦幻 | 柔和、梦幻、仙气 |
-| 酷炫 | 酷、暗黑、赛博 |
-| 华丽 | 闪亮、华丽、贵族 |
-| 清新 | 自然、清新、淡雅 |
-| 独特 | 奇怪、个性、前卫 |
-
-### 愿望 (wish)
-| 选项 | 描述 |
-|------|------|
-| 神秘 | 探索未知的深海 |
-| 文艺 | 创作属于自己的歌 |
-| 战斗 | 成为最强的龙虾战士 |
-| 治愈 | 拥有一个温暖的窝 |
-| 霸气 | 成为海底之王 |
+这是玩法模板过长时的提示。当前 `travel` 已有自动降级逻辑，会回退到通用 prompt。
 
 ## 项目结构
 
-```
+```text
 clawhouse/
-├── SKILL.md                    # 技能描述（neta-skills标准格式）
-├── README.md
-├── package.json                # @neta/skills-clawhouse
-├── .env.example
-├── tsconfig.json
-├── src/
-│   ├── cli.ts                  # CLI入口
-│   ├── apis/                   # Neta API封装（依赖neta-skills）
-│   ├── utils/                  # 工具函数（依赖neta-skills）
-│   └── commands/
-│       ├── factory.ts          # 命令工厂（依赖neta-skills）
-│       ├── load.ts             # 命令加载器（依赖neta-skills）
-│       ├── schema.ts           # 数据Schema（依赖neta-skills）
-│       └── lobster/            # 🦞 龙虾领养馆命令
-│           ├── match_soul      # 匹配灵魂原型（4层搜索）
-│           ├── generate_lobster # 生成龙虾形象
-│           └── adopt           # 一键领养
-└── references/
+  src/
+    cli.ts
+    commands/lobster/
+      adopt.cmd.ts
+      match_soul.cmd.ts
+      generate_lobster.cmd.ts
+      travel.cmd.ts
+      pixel_house.cmd.ts
+  FLOW.md
+  infographics.md
+  SKILL.md
 ```
+
+## 相关文档
+
+- 完整流程说明：`FLOW.md`
+- 介绍用画图 prompt：`infographics.md`
 
 ## License
 
