@@ -51,11 +51,12 @@ const outputSchema = z.object({
 function readCharacterFromSoul(soulPath: string): string | null {
   try {
     const content = readFileSync(resolve(soulPath), "utf-8");
-    const nameMatch = content.match(
-      /- \*\*名字\*\*:\s*(.+?)(?:（[^）]+）)?$/m,
-    );
+    const nameMatch = content.match(/- \*\*名字\*\*:\s*(.+)$/m);
     if (nameMatch?.[1]) {
-      return nameMatch[1].trim();
+      return nameMatch[1]
+        .trim()
+        .replace(/(?:（龙虾化）|\(龙虾化\))$/, "")
+        .trim();
     }
   } catch {}
   return null;

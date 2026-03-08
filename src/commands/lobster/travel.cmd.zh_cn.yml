@@ -7,6 +7,6 @@ description: |
   1. 从SOUL.md读取当前角色
   2. 发现或指定一个玩法作为目的地
   3. 用玩法的prompt模板 + 当前角色生成旅行图片
-  4. 自动记录旅行到SOUL.md
+  4. 返回旅行结果（不改写SOUL.md）
   
   可以指定目的地（collection_uuid），也可以不指定让系统自动推荐。

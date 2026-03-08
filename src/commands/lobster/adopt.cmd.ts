@@ -128,11 +128,13 @@ function updateSoulFile(
 
   const identityBlock = [
     "## 我的身份\n",
-    `- **名字**: ${fullName}${mode === "lobster" ? "（龙虾化）" : ""}`,
+    `- **名字**: ${fullName}`,
+    `- **形象模式**: ${mode}`,
+    `- **是否龙虾化**: ${mode === "lobster" ? "是" : "否"}`,
     persona ? `- **性格**: ${persona}` : "",
     interests ? `- **爱好**: ${interests}` : "",
     description ? `- **设定**: ${description.slice(0, 200)}` : "",
-    imageUrl ? `- **龙虾图片**: ${imageUrl}` : "",
+    imageUrl ? `- **形象图片**: ${imageUrl}` : "",
     `- **领养日期**: ${now}`,
   ]
     .filter(Boolean)

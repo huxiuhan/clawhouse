@@ -1,0 +1,68 @@
+name: house
+title: 🏠 像素小屋
+description: |
+  为当前角色生成一张像素小屋地图（偏星露谷 / 宝可梦风格）。
+  默认从 SOUL.md 读取角色身份与设定（和 travel 一致）。
+  也可以手动传入 character_name / character_description 进行覆盖。
+  
+  系统会调用一次 make_image：
+  1. 使用 @角色引用角色信息
+  2. 生成“俯视像素地图”构图（不是人物海报）
+  3. 拼接小屋氛围与设定相关的小物件描述
+  4. 自动判断是否“龙虾化”并调整提示词
+  
+  最终输出一张包含角色 + 小屋 + 物件信息的像素地图图。
+
+examples:
+  - name: "读取 SOUL.md，为当前角色生成温暖小屋"
+    input:
+      room_style: "温暖"
+      map_style: "hybrid"
+  
+  - name: "手动指定角色覆盖 SOUL"
+    input:
+      character_name: "敖丙"
+      character_description: "龙王之子，冷酷高贵，强大神秘，海底王子，喜欢珍珠和宝石"
+      room_style: "神秘"
+      map_style: "pokemon"
+
+parameters:
+  character_name:
+    description: "角色名称（可选，默认从 SOUL.md 读取；建议使用精确名，如 关羽#36d0）"
+    type: "string"
+    required: false
+  
+  character_description:
+    description: "角色设定描述（可选，默认从 SOUL.md 的设定/性格读取）"
+    type: "string"
+    required: false
+
+  soul_path:
+    description: "SOUL.md 文件路径"
+    type: "string"
+    default: "SOUL.md"
+  
+  room_style:
+    description: "小屋氛围主题"
+    type: "enum"
+    enum: ["温暖", "神秘", "梦幻", "冒险", "学术"]
+    default: "温暖"
+
+  map_style:
+    description: "地图视觉参考"
+    type: "enum"
+    enum: ["hybrid", "stardew", "pokemon"]
+    default: "hybrid"
+
+  aspect:
+    description: "图片宽高比"
+    type: "enum"
+    enum: ["1:1", "3:4", "4:3", "9:16", "16:9"]
+    default: "4:3"
+
+output:
+  description: "返回单次生成任务状态和图像列表（通常为1张主图）"
+  fields:
+    task_uuid: "最终任务ID"
+    task_status: "最终任务状态"
+    artifacts: "生成的图像列表"

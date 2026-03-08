@@ -63,7 +63,7 @@
 自动覆盖SOUL.md
   ├─ 读取SOUL.md
   ├─ 替换"## 我的身份"部分
-  ├─ 写入：名字、性格、爱好、设定、龙虾图片、领养日期
+  ├─ 写入：名字、形象模式、是否龙虾化、性格、爱好、设定、形象图片、领养日期
   └─ 保存文件
   ↓
 返回结果
@@ -107,11 +107,13 @@ npm start adopt -- --name "关羽#36d0" --mode "lobster"
    ```markdown
    ## 我的身份
    
-   - **名字**: 关羽#36d0（龙虾化）
+   - **名字**: 关羽#36d0
+   - **形象模式**: lobster
+   - **是否龙虾化**: 是
    - **性格**: 忠诚正直、勇武威猛、义气深厚、傲上而不欺下
    - **爱好**: 匡扶大义
    - **设定**: 关羽（？—220年），字云长...
-   - **龙虾图片**: https://oss.talesofai.cn/picture/xxx.webp
+   - **形象图片**: https://oss.talesofai.cn/picture/xxx.webp
    - **领养日期**: 2026-03-08
    ```
 
@@ -318,11 +320,13 @@ function updateSoulFile(soulPath, fullName, mode, persona, interests, descriptio
   
   const identityBlock = [
     `## 我的身份\n`,
-    `- **名字**: ${fullName}${mode === "lobster" ? "（龙虾化）" : ""}`,
+    `- **名字**: ${fullName}`,
+    `- **形象模式**: ${mode}`,
+    `- **是否龙虾化**: ${mode === "lobster" ? "是" : "否"}`,
     persona ? `- **性格**: ${persona}` : "",
     interests ? `- **爱好**: ${interests}` : "",
     description ? `- **设定**: ${description.slice(0, 200)}` : "",
-    imageUrl ? `- **龙虾图片**: ${imageUrl}` : "",
+    imageUrl ? `- **形象图片**: ${imageUrl}` : "",
     `- **领养日期**: ${new Date().toISOString().split("T")[0]}`,
   ].filter(Boolean).join("\n");
   

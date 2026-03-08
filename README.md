@@ -2,94 +2,24 @@
   <img src="./banner.jpg" alt="ClawHouse Banner" width="100%" />
 </p>
 
-# ClawHouse
+<h1 align="center">ClawHouse · 龙虾领养馆</h1>
 
-龙虾领养馆。  
-把 Neta 角色当作灵魂原型，完成「领养 -> 旅行 -> 扩展玩法」的完整闭环。
+<p align="center">
+  把 Neta 角色当作灵魂原型，完成「领养 -> 旅行 -> 扩展玩法」的完整闭环。
+</p>
 
-- 适合人类用户：直接跑 CLI 命令就能体验。
-- 适合 OpenClaw：命令清晰、输入输出稳定、可逐步自动化。
+<p align="center">
+  适合人类用户：直接跑 CLI 命令就能体验。<br/>
+  适合 OpenClaw：命令清晰、输入输出稳定、可逐步自动化。
+</p>
 
-## 你可以做什么
-
-1. 指定角色或人格线索，匹配 Neta 角色。
-2. 生成角色的龙虾化形象或保留原型形象。
-3. 自动写入 `SOUL.md`，保存当前身份。
-4. 基于当前身份自动发现玩法，读取玩法模板后生成旅行图。
-5. 可选：为角色生成像素小屋（角色 + 房间 + 物件）。
-
-## 玩法主线（推荐）
-
-```text
-输入角色线索
-  -> match_soul / adopt
-  -> 生成角色图像
-  -> 覆盖 SOUL.md（当前身份）
-  -> travel 自动发现玩法
-  -> read_collection 读取玩法详情与模板
-  -> 生成旅行图
-```
-
-补充分支：
-
-```text
-已有角色设定
-  -> pixel_house
-  -> 生成像素角色 + 小屋 + 物件
-```
-
-## 快速开始
-
-### 1) 安装
-
-```bash
-git clone git@github.com:huxiuhan/clawhouse.git
-cd clawhouse
-npm install
-cp .env.example .env
-```
-
-### 2) 配置
-
-编辑 `.env`：
-
-```bash
-NETA_TOKEN=your_neta_token_here
-NETA_API_BASE_URL=https://api.talesofai.cn
-```
-
-### 3) 验证 CLI 可用
-
-```bash
-npm run dev -- --help
-```
-
-## 30 秒跑通（最短路径）
-
-### 第一步：领养
-
-```bash
-npm start -- adopt --name "关羽" --mode "lobster"
-```
-
-这一步会：
-
-1. 搜索角色并匹配。
-2. 生成形象图。
-3. 自动覆盖当前目录的 `SOUL.md`。
-
-### 第二步：旅行
-
-```bash
-npm start -- travel
-```
-
-这一步会：
-
-1. 从 `SOUL.md` 读取当前角色。
-2. 自动发现一个玩法。
-3. 读取玩法详情（`read_collection` 语义流程）。
-4. 用玩法模板 + 角色生成旅行图。
+<p align="center">
+  <a href="#亮点案例库实测">亮点案例</a> ·
+  <a href="#30-秒跑通最短路径">30 秒跑通</a> ·
+  <a href="#命令地图">命令地图</a> ·
+  <a href="#快速开始">快速开始</a> ·
+  <a href="#常见问题">常见问题</a>
+</p>
 
 ## 亮点案例库（实测）
 
@@ -105,7 +35,7 @@ npm start -- adopt --name "敖丙" --mode "lobster"
 
 1. 角色匹配到「敖丙」相关角色。
 2. 生成龙虾化形象（海底场景）。
-3. `SOUL.md` 会更新当前身份。
+3. 自动更新 `SOUL.md` 当前身份。
 
 示例图：
 
@@ -178,6 +108,76 @@ npm start -- travel
 
 ![关羽自动发现玩法旅行](https://oss.talesofai.cn/picture/db2393a5-5e24-43cb-8392-7b5134f8f90a.webp)
 
+### 案例 5：自动发现运动报告玩法（`travel`）
+
+命令：
+
+```bash
+npm start -- travel
+```
+
+关键结果（一次实测，2026-03-08）：
+
+```json
+{
+  "travel": {
+    "character_name": "关羽",
+    "destination": {
+      "uuid": "0a7a79e0-27a7-4281-8b2c-66064fa75185",
+      "name": "【捏捏开荒团】角色的运动报告",
+      "url": "https://app.nieta.art/collection/interaction?uuid=0a7a79e0-27a7-4281-8b2c-66064fa75185"
+    },
+    "image": {
+      "task_uuid": "a827727f-f7dc-4ad5-b536-1082b98da5a9",
+      "url": "https://oss.talesofai.cn/picture/a827727f-f7dc-4ad5-b536-1082b98da5a9.webp"
+    }
+  }
+}
+```
+
+示例图：
+
+![关羽自动发现运动报告玩法](https://oss.talesofai.cn/picture/a827727f-f7dc-4ad5-b536-1082b98da5a9.webp)
+
+## 30 秒跑通（最短路径）
+
+### 第一步：领养
+
+```bash
+npm start -- adopt --name "关羽" --mode "lobster"
+```
+
+这一步会：
+
+1. 搜索角色并匹配。
+2. 生成形象图。
+3. 自动覆盖当前目录的 `SOUL.md`。
+
+### 第二步：旅行
+
+```bash
+npm start -- travel
+```
+
+这一步会：
+
+1. 从 `SOUL.md` 读取当前角色。
+2. 自动发现一个玩法。
+3. 读取玩法详情（`read_collection` 语义流程）。
+4. 用玩法模板 + 角色生成旅行图。
+
+### 第三步（可选）：生成小屋
+
+```bash
+npm start -- house
+```
+
+这一步会：
+
+1. 从 `SOUL.md` 读取当前角色身份与设定。
+2. 调用一次 `make_image`，生成“俯视像素小屋地图”（星露谷/宝可梦风格）。
+3. 组合 `@角色` + 小屋氛围 + 设定相关物件描述并返回主图（`artifacts`）。
+
 ## 命令地图
 
 | 命令 | 用途 | 关键输入 | 关键输出 |
@@ -185,8 +185,8 @@ npm start -- travel
 | `adopt` | 一键领养（匹配+生成+写SOUL） | `name` / `personality` / `mode` | 角色信息、图片任务、`soul_updated` |
 | `match_soul` | 只做角色匹配 | `name` / `soul_description` / `personality` | `matched_characters` |
 | `generate_lobster` | 只做形象生成 | `character_uuid` / `character_name` / `mode` | 图片任务结果 |
-| `travel` | 旅行图生成 | `collection_uuid`(可选) / `soul_path` | 目的地信息 + 旅行图 |
-| `pixel_house` | 像素小屋玩法 | `character_name` / `character_description` | 多张像素图 artifacts |
+| `travel` | 旅行图生成 | `collection_uuid`（可选） / `soul_path` | 目的地信息 + 旅行图 |
+| `house` | 像素小屋地图玩法 | `soul_path` / `room_style` / `map_style`（可选）/ `character_name`（可选覆盖） | 像素小屋地图 artifacts |
 
 查看任一命令参数：
 
@@ -198,6 +198,65 @@ npm run dev -- <command> --help
 
 ```bash
 npm run dev -- travel --help
+```
+
+命令写法说明：
+
+- `npm start travel` 在无参数时可用。
+- 只要要传 `--xxx` 参数，推荐统一写成 `npm start -- <command> --xxx ...`，避免参数被 npm 吃掉。
+
+## 你可以做什么
+
+1. 指定角色或人格线索，匹配 Neta 角色。
+2. 生成角色的龙虾化形象或保留原型形象。
+3. 自动写入 `SOUL.md`，保存当前身份。
+4. 基于当前身份自动发现玩法，读取玩法模板后生成旅行图。
+5. 可选：为当前身份生成一张像素小屋地图图（角色 + 房间 + 物件同图）。
+
+## 玩法主线（推荐）
+
+```text
+输入角色线索
+  -> match_soul / adopt
+  -> 生成角色图像
+  -> 覆盖 SOUL.md（当前身份）
+  -> travel 自动发现玩法
+  -> read_collection 读取玩法详情与模板
+  -> 生成旅行图
+```
+
+补充分支：
+
+```text
+已有角色身份
+  -> house
+  -> 一次生图生成像素小屋场景
+```
+
+## 快速开始
+
+### 1) 安装
+
+```bash
+git clone git@github.com:huxiuhan/clawhouse.git
+cd clawhouse
+npm install
+cp .env.example .env
+```
+
+### 2) 配置
+
+编辑 `.env`：
+
+```bash
+NETA_TOKEN=your_neta_token_here
+NETA_API_BASE_URL=https://api.talesofai.cn
+```
+
+### 3) 验证 CLI 可用
+
+```bash
+npm run dev -- --help
 ```
 
 ## 核心机制
@@ -216,6 +275,7 @@ npm run dev -- travel --help
 - `adopt` 会覆盖 `## 我的身份`。
 - `travel` 只读取，不改写。
 - 如果没有 `SOUL.md` 身份，`travel` 会报错提醒先领养。
+- `SOUL.md` 里的 `名字` 字段必须是角色精确名（如 `关羽#36d0`）；龙虾化状态单独记录在 `形象模式` / `是否龙虾化`。
 
 ### 3) 旅行流的发现与读取
 
@@ -235,7 +295,7 @@ npm run dev -- travel --help
 2. 跑 `match_soul`，检查角色检索是否工作。
 3. 跑 `adopt`，验证图像生成 + `SOUL.md` 写入。
 4. 跑 `travel`，验证自动发现 + 玩法读取 + 旅行图生成。
-5. 跑 `pixel_house`，验证扩展玩法链路。
+5. 跑 `house`，验证扩展玩法链路。
 
 这样可以快速判断：账号权限、网络、API、命令参数、文件写入是否都正常。
 
@@ -251,7 +311,7 @@ npm run dev -- travel --help
 
 ### 2) `SOUL.md中没有找到角色信息`
 
-先执行一次 `adopt`，或手动提供包含 `## 我的身份` 和 `- **名字**:` 的 `SOUL.md`。
+先执行一次 `adopt`，或手动提供包含 `## 我的身份`、`- **名字**:`、`- **形象模式**:` 的 `SOUL.md`。
 
 ### 3) `搜索关键字过多`
 
@@ -268,7 +328,7 @@ clawhouse/
       match_soul.cmd.ts
       generate_lobster.cmd.ts
       travel.cmd.ts
-      pixel_house.cmd.ts
+      house.cmd.ts
   FLOW.md
   infographics.md
   SKILL.md
