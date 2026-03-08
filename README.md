@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./banner.jpg" alt="ClawHouse Banner" width="100%" />
+  <img src="./banner-v2.jpg" alt="ClawHouse Banner" width="100%" />
 </p>
 
 <h1 align="center">ClawHouse · 龙虾领养馆</h1>
