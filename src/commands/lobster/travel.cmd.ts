@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import z from "zod";
 import { buildMakeImagePayload } from "../../apis/types.ts";
@@ -44,7 +44,6 @@ const outputSchema = z.object({
       task_status: z.string(),
       artifacts: z.array(z.any()),
     }),
-    soul_updated: z.boolean(),
   }),
 });
 
@@ -60,48 +59,6 @@ function readCharacterFromSoul(soulPath: string): string | null {
     }
   } catch {}
   return null;
-}
-
-/** 记录旅行到SOUL.md */
-function recordTravel(
-  soulPath: string,
-  destinationName: string,
-  imageUrl: string,
-): boolean {
-  const soulFile = resolve(soulPath);
-  let content = "";
-  try {
-    content = readFileSync(soulFile, "utf-8");
-  } catch {
-    return false;
-  }
-
-  const now = new Date().toISOString().split("T")[0];
-
-  // 计算旅行编号
-  const travelMatches = content.match(/### 旅行 #(\d+)/g);
-  const nextNum = travelMatches ? travelMatches.length + 1 : 1;
-
-  const travelEntry = [
-    `\n### 旅行 #${nextNum}：${destinationName}`,
-    `- **日期**: ${now}`,
-    `- **目的地**: ${destinationName}`,
-    imageUrl ? `- **旅行照片**: ${imageUrl}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  if (content.includes("## 🌍 我的旅行记录")) {
-    content = content.replace(
-      "## 🌍 我的旅行记录",
-      `## 🌍 我的旅行记录\n${travelEntry}`,
-    );
-  } else {
-    content += `\n\n## 🌍 我的旅行记录\n${travelEntry}`;
-  }
-
-  writeFileSync(soulFile, content, "utf-8");
-  return true;
 }
 
 export const travel = createCommand(
@@ -234,16 +191,6 @@ export const travel = createCommand(
       ? { task_uuid, task_status: "TIMEOUT", artifacts: [] }
       : res.result;
 
-    // 6. 记录旅行到SOUL.md
-    const imageUrl = imageResult.artifacts?.[0]?.url ?? "";
-    let soulUpdated = false;
-    try {
-      soulUpdated = recordTravel(soul_path, collectionName, imageUrl);
-      log.info("travel: recorded in SOUL.md");
-    } catch (e) {
-      log.info("travel: failed to record: %s", e);
-    }
-
     return {
       travel: {
         character_name: characterName,
@@ -254,7 +201,6 @@ export const travel = createCommand(
           url: collectionUrl,
         },
         image: imageResult,
-        soul_updated: soulUpdated,
       },
     };
   },
